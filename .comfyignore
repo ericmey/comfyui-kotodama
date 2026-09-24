@@ -1,5 +1,6 @@
 .env
 .claude/
+.github/
 tests/
 __pycache__/
 *.pyc

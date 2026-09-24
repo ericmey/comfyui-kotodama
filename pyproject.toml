@@ -11,3 +11,7 @@ authors = [{name = "Eric Mey"}]
 [project.urls]
 Repository = "https://github.com/ericmey/comfyui-kotodama"
 Issues = "https://github.com/ericmey/comfyui-kotodama/issues"
+
+[tool.comfy]
+PublisherId = "ericmey"
+DisplayName = "Kotodama Prompt Enhancer"

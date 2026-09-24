@@ -4,7 +4,6 @@ on:
   pull_request:
   release:
     types: [published]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,7 +16,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.10"
-      - run: python -m pip install aiohttp
+      - run: python -m pip install aiohttp 'tomli>=2,<3'
       - name: Check release tag matches package version
         if: github.event_name == 'release'
         env:
@@ -25,10 +24,10 @@ jobs:
         run: |
           python - <<'PY'
           import os
-          import tomllib
+          import tomli
 
           with open("pyproject.toml", "rb") as source:
-              version = tomllib.load(source)["project"]["version"]
+              version = tomli.load(source)["project"]["version"]
           assert os.environ["RELEASE_TAG"] == f"v{version}"
           PY
       - run: |
@@ -38,11 +37,13 @@ jobs:
           python tests/test_settings.py
 
   publish:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'release'
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: Comfy-Org/publish-node-action@7578cdb0c1410f2515e6f9b1443c6859cab94f05 # 1.0.1
         with:
           skip_checkout: "true"

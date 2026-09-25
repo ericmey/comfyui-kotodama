@@ -1,8 +1,7 @@
 """System-prompt library, checked against the real folder."""
 
 import re
-import sys
-from pathlib import Path
+
 import pytest
 
 from kotodama import prompts
@@ -32,10 +31,12 @@ def test_rewrapped_banners_stripped() -> None:
     sample = "real prompt line\n### START ###\nmore prompt\n### END ###\n"
     assert _strip_banners(sample) == "real prompt line\nmore prompt"
 
+
 # Prompt-library contract: every discovered preset must (a) load non-empty,
 # (b) have its wrapper banners stripped, and (c) not affirm that the
-# text-only node can inspect a reference image. Each check is run once per
-# preset so a regression in any single file fails the suite by name.
+# text-only node can inspect a reference image. The preset list is read
+# at collection time so a regression in any single file fails the suite
+# with a clear message naming that preset.
 _NEGATIVE_QUALIFIERS = ("do not", "never", "must not", "should not", "no ")
 
 
@@ -51,22 +52,23 @@ def _claims_unseen_image(body: str) -> bool:
     return False
 
 
-for preset in prompts.available():
-    if preset.startswith("<"):
-        continue  # placeholder returned when the folder is empty / missing
+_PRESETS = [
+    name
+    for name in prompts.available()
+    if not name.startswith("<")  # placeholder returned when the folder is empty / missing
+]
+
+
+@pytest.mark.parametrize("preset", _PRESETS)
+def test_prompt_library_contract(preset: str) -> None:
     body = prompts.load(preset)
-    check(f"{preset}: loads non-empty", bool(body.strip()))
-    check(f"{preset}: START banner stripped", "########START" not in body)
-    check(f"{preset}: END banner stripped", "##########END" not in body)
-    check(
-        f"{preset}: text-only contract (no claim to inspect a reference image)",
-        not _claims_unseen_image(body),
+    assert body.strip(), f"{preset}: prompt must load non-empty"
+    assert "########START" not in body, f"{preset}: wrapper START banner must be stripped"
+    assert "##########END" not in body, f"{preset}: wrapper END banner must be stripped"
+    assert not _claims_unseen_image(body), (
+        f"{preset}: text-only contract violated - "
+        "prompt asserts it can inspect a reference image"
     )
-
-
-# Forgiving banner strip: a rewrap or whitespace edit of the canonical banner
-# should still be removed. Done in-process rather than touching real files.
-from kotodama.prompts import _strip_banners  # noqa: E402
 
 
 def test_narrative_comment_with_the_word_start_survives() -> None:

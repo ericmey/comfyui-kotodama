@@ -388,3 +388,17 @@ def test_status_never_reports_an_absolute_path(user_dir, tmp_path) -> None:
         text = json.dumps(payload)
         assert str(tmp_path) not in text and "config_path" not in payload
         assert payload["config_location"] == "ComfyUI user directory (kotodama/.env)"
+
+
+@pytest.mark.parametrize("where", ["env", "dotenv"])
+def test_clear_key_refused_when_the_key_lives_outside_the_panel(user_dir, where) -> None:
+    # Yua's repro: Clear returned 200 and the UI said "Key cleared." while the
+    # external key stayed in force.
+    config.write_user_settings({"KOTODAMA_API_KEY": "PANEL-KEY"})
+    env = {"KOTODAMA_API_KEY": "ENV-KEY"} if where == "env" else {}
+    if where == "dotenv":
+        config.ENV_FILE.write_text("KOTODAMA_API_KEY=ENV-KEY\n")
+    with patch.dict(os.environ, env):
+        status, got = save({"clear_api_key": True})
+        assert (status, got["error"]) == (409, "key_outside_panel")
+    assert config._read_env_file(user_dir)["KOTODAMA_API_KEY"] == "PANEL-KEY"  # nothing written

@@ -193,6 +193,9 @@ def plan_settings_update(body: dict) -> tuple[dict[str, str | None], str | None]
     if new_key is not None and (not isinstance(new_key, str) or not new_key.strip()):
         return {}, "invalid_api_key"
     if body.get("clear_api_key") is True:
+        # Clearing only the panel's copy would report success while the key stays in force.
+        if config.key_outside_panel():
+            return {}, "key_outside_panel"
         updates["KOTODAMA_API_KEY"] = None
         updates["LITELLM_API_KEY"] = None
 

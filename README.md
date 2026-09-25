@@ -38,6 +38,10 @@ For an install managed by a package manager, put the same `.env` file at `<Comfy
 
 **Keep the API key out of node widgets.** ComfyUI saves widget values in workflow JSON and may embed them in generated PNG metadata. `.env` is ignored by Git; keep the file private and restrict access to your ComfyUI host. Anyone who can administer an exposed ComfyUI instance may be able to run nodes or inspect its files, so protect ComfyUI itself.
 
+## Try the example
+
+Open `examples/kotodama-preview-api.json` in ComfyUI (**Workflow → Open**, or drag the file onto the canvas). It is two nodes: Kotodama feeding a **Preview Any** node that shows the generated prompt. Pick a model from the node's model menu (the file ships with a placeholder), then **Queue**. No image model is needed to see what Kotodama writes. To render it, connect `prompt` to `CLIPTextEncode.text` in your own workflow.
+
 ## Use
 
 Add **Kotodama Prompt Enhancer**, enter or connect rough `text`, select a system prompt and model, then connect its `prompt` output to `CLIPTextEncode.text`. To expose that input on CLIPTextEncode, right-click the node and choose **Convert widget to input → text**.

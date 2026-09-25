@@ -1,0 +1,18 @@
+{
+  "1": {
+    "class_type": "KotodamaPromptEnhancer",
+    "inputs": {
+      "text": "a lighthouse keeper's cat watching a storm from the window",
+      "system_prompt": "text-to-image",
+      "model": "REPLACE_WITH_A_MODEL_FROM_THE_MENU",
+      "temperature": 0.8,
+      "max_tokens": 1024,
+      "seed": 7,
+      "passthrough_on_empty": false
+    }
+  },
+  "2": {
+    "class_type": "PreviewAny",
+    "inputs": { "source": ["1", 0] }
+  }
+}

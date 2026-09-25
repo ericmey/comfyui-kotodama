@@ -1,76 +1,50 @@
 """The output cleaner is the part that silently corrupts a prompt if it
 overreaches, so it gets tested against the shapes models actually emit."""
 
-import sys
-from pathlib import Path
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import pytest
 
-from kotodama.client import LiteLLMError  # noqa: E402
-from kotodama.enhancer import KotodamaPromptEnhancer, clean  # noqa: E402
-from kotodama import prompts  # noqa: E402
-
-
-def check(label, got, want):
-    status = "PASS" if got == want else "FAIL"
-    print(f"[{status}] {label}")
-    if got != want:
-        print(f"    want: {want!r}")
-        print(f"    got:  {got!r}")
-    return got == want
+from kotodama import prompts
+from kotodama.client import LiteLLMError
+from kotodama.enhancer import KotodamaPromptEnhancer, clean
 
 
-results = []
-
-results.append(check("plain text untouched",
-    clean("A woman on a rooftop."), "A woman on a rooftop."))
-
-results.append(check("wrapping quotes stripped",
-    clean('"A woman on a rooftop."'), "A woman on a rooftop."))
-
-results.append(check("code fence stripped",
-    clean("```\nA woman on a rooftop.\n```"), "A woman on a rooftop."))
-
-results.append(check("language fence stripped",
-    clean("```text\nA woman on a rooftop.\n```"), "A woman on a rooftop."))
-
-results.append(check("lead-in stripped",
-    clean("Here is the prompt:\nA woman on a rooftop."), "A woman on a rooftop."))
-
-results.append(check("curly-apostrophe lead-in stripped",
-    clean("Here’s the prompt:\nA woman on a rooftop."), "A woman on a rooftop."))
-
-# The krea2 spec REQUIRES quoted signage inside the prompt. Eating those
-# quotes would silently change what gets rendered.
-results.append(check("inner quotes survive",
-    clean('A storefront sign reading "OPEN LATE" at dusk.'),
-    'A storefront sign reading "OPEN LATE" at dusk.'))
-
-results.append(check("wrapped prompt keeps its inner quotes",
-    clean('"A sign reading "OPEN LATE" at dusk."'),
-    'A sign reading "OPEN LATE" at dusk.'))
-
-results.append(check("smart quotes stripped",
-    clean("“A woman on a rooftop.”"), "A woman on a rooftop."))
-
-results.append(check("nested straight-outer curly-inner only strips outer",
-    clean('"\u201chi\u201d"'), "\u201chi\u201d"))
-
-results.append(check("whitespace only -> empty",
-    clean("   \n  "), ""))
+@pytest.mark.parametrize(
+    ("raw", "want"),
+    [
+        pytest.param("A woman on a rooftop.", "A woman on a rooftop.", id="plain text untouched"),
+        pytest.param('"A woman on a rooftop."', "A woman on a rooftop.", id="wrapping quotes stripped"),
+        pytest.param("```\nA woman on a rooftop.\n```", "A woman on a rooftop.", id="code fence stripped"),
+        pytest.param("```text\nA woman on a rooftop.\n```", "A woman on a rooftop.", id="language fence stripped"),
+        pytest.param("Here is the prompt:\nA woman on a rooftop.", "A woman on a rooftop.", id="lead-in stripped"),
+        pytest.param(
+            "Here’s the prompt:\nA woman on a rooftop.", "A woman on a rooftop.", id="curly-apostrophe lead-in stripped"
+        ),
+        # The krea2 spec REQUIRES quoted signage inside the prompt. Eating those
+        # quotes would silently change what gets rendered.
+        pytest.param(
+            'A storefront sign reading "OPEN LATE" at dusk.',
+            'A storefront sign reading "OPEN LATE" at dusk.',
+            id="inner quotes survive",
+        ),
+        pytest.param(
+            '"A sign reading "OPEN LATE" at dusk."',
+            'A sign reading "OPEN LATE" at dusk.',
+            id="wrapped prompt keeps its inner quotes",
+        ),
+        pytest.param("“A woman on a rooftop.”", "A woman on a rooftop.", id="smart quotes stripped"),
+        pytest.param('"“hi”"', "“hi”", id="nested straight-outer curly-inner only strips outer"),
+        pytest.param("   \n  ", "", id="whitespace only -> empty"),
+    ],
+)
+def test_clean(raw: str, want: str) -> None:
+    assert clean(raw) == want
 
 
 # --- IS_CHANGED: every relevant input must invalidate the cache ---
 
-
-def check_bool(label, ok):
-    status = "PASS" if ok else "FAIL"
-    print(f"[{status}] {label}")
-    return ok
-
-
-base = dict(
+BASE = dict(
     text="a woman on a rooftop",
     system_prompt="krea2",
     model="example/main",
@@ -80,69 +54,62 @@ base = dict(
     passthrough_on_empty=True,
 )
 
-ref = KotodamaPromptEnhancer.IS_CHANGED(**base)
-for field, alt in (
-    ("text", "a different woman"),
-    ("system_prompt", "different-prompt"),
-    ("model", "example/small"),
-    ("temperature", 0.5),
-    ("max_tokens", 2048),
-    ("seed", 1),
-    ("passthrough_on_empty", False),
-):
-    tweaked = dict(base, **{field: alt})
-    changed = KotodamaPromptEnhancer.IS_CHANGED(**tweaked)
-    results.append(check_bool(
-        f"IS_CHANGED reacts to {field!r} change",
-        changed != ref,
-    ))
 
-# Sanity: identical inputs return an equal key
-results.append(check_bool(
-    "IS_CHANGED is deterministic for identical inputs",
-    KotodamaPromptEnhancer.IS_CHANGED(**base) == ref,
-))
+@pytest.mark.parametrize(
+    ("field", "alt"),
+    [
+        ("text", "a different woman"),
+        ("system_prompt", "different-prompt"),
+        ("model", "example/small"),
+        ("temperature", 0.5),
+        ("max_tokens", 2048),
+        ("seed", 1),
+        ("passthrough_on_empty", False),
+    ],
+)
+def test_is_changed_reacts_to_each_input(field: str, alt: object) -> None:
+    ref = KotodamaPromptEnhancer.IS_CHANGED(**BASE)
+    assert KotodamaPromptEnhancer.IS_CHANGED(**dict(BASE, **{field: alt})) != ref
 
-with patch("kotodama.enhancer.client.config.safe_base_url", return_value="https://other.example"):
-    results.append(check_bool(
-        "changing endpoint invalidates cached output",
-        KotodamaPromptEnhancer.IS_CHANGED(**base) != ref,
-    ))
 
-with patch("kotodama.enhancer.client.config.api_key", return_value="test-key-a"):
-    first_key = KotodamaPromptEnhancer.IS_CHANGED(**base)
-with patch("kotodama.enhancer.client.config.api_key", return_value="test-key-b"):
-    second_key = KotodamaPromptEnhancer.IS_CHANGED(**base)
-results.append(check_bool(
-    "changing API key invalidates cached output",
-    first_key != second_key,
-))
-results.append(check_bool(
-    "cache identity does not expose the API key",
-    "test-key-a" not in repr(first_key),
-))
+def test_is_changed_is_deterministic_for_identical_inputs() -> None:
+    assert KotodamaPromptEnhancer.IS_CHANGED(**BASE) == KotodamaPromptEnhancer.IS_CHANGED(**BASE)
 
-_cache_probe = prompts.PROMPT_DIR / "_cache_probe.md"
-try:
-    _cache_probe.write_text("first version", encoding="utf-8")
-    key1 = KotodamaPromptEnhancer.IS_CHANGED(**dict(base, system_prompt="_cache_probe"))
-    _cache_probe.write_text("second version", encoding="utf-8")
-    key2 = KotodamaPromptEnhancer.IS_CHANGED(**dict(base, system_prompt="_cache_probe"))
-    results.append(check_bool("editing selected prompt invalidates cache", key1 != key2))
-finally:
-    _cache_probe.unlink(missing_ok=True)
 
-spec = KotodamaPromptEnhancer.INPUT_TYPES()["required"]
-results.append(check_bool(
-    "text-only prompt is the default",
-    spec["system_prompt"][1]["default"] == "text-to-image",
-))
-results.append(check_bool(
-    "empty input fails by default",
-    spec["passthrough_on_empty"][1]["default"] is False,
-))
+def test_changing_endpoint_invalidates_cached_output() -> None:
+    ref = KotodamaPromptEnhancer.IS_CHANGED(**BASE)
+    with patch("kotodama.enhancer.client.config.safe_base_url", return_value="https://other.example"):
+        assert KotodamaPromptEnhancer.IS_CHANGED(**BASE) != ref
 
-def _enhance_with_reply(reply):
+
+def test_changing_api_key_invalidates_cache_without_exposing_it() -> None:
+    with patch("kotodama.enhancer.client.config.api_key", return_value="test-key-a"):
+        first_key = KotodamaPromptEnhancer.IS_CHANGED(**BASE)
+    with patch("kotodama.enhancer.client.config.api_key", return_value="test-key-b"):
+        second_key = KotodamaPromptEnhancer.IS_CHANGED(**BASE)
+    assert first_key != second_key
+    assert "test-key-a" not in repr(first_key)
+
+
+def test_editing_selected_prompt_invalidates_cache() -> None:
+    probe = prompts.PROMPT_DIR / "_cache_probe.md"
+    try:
+        probe.write_text("first version", encoding="utf-8")
+        key1 = KotodamaPromptEnhancer.IS_CHANGED(**dict(BASE, system_prompt="_cache_probe"))
+        probe.write_text("second version", encoding="utf-8")
+        key2 = KotodamaPromptEnhancer.IS_CHANGED(**dict(BASE, system_prompt="_cache_probe"))
+    finally:
+        probe.unlink(missing_ok=True)
+    assert key1 != key2
+
+
+def test_input_defaults() -> None:
+    spec = KotodamaPromptEnhancer.INPUT_TYPES()["required"]
+    assert spec["system_prompt"][1]["default"] == "text-to-image"  # text-only prompt is the default
+    assert spec["passthrough_on_empty"][1]["default"] is False  # empty input fails by default
+
+
+def _enhance_with_reply(reply: str) -> tuple[str]:
     node = KotodamaPromptEnhancer()
     with patch("kotodama.enhancer.prompts.load", return_value="system"):
         with patch("kotodama.enhancer.client.complete", return_value=reply):
@@ -157,19 +124,10 @@ def _enhance_with_reply(reply):
             )
 
 
-try:
-    _enhance_with_reply("   \n  ")
-    results.append(check("enhance refuses cleaned-empty reply", False, True))
-except LiteLLMError as exc:
-    results.append(check(
-        "enhance refuses cleaned-empty reply",
-        "empty string downstream" in str(exc),
-        True,
-    ))
+def test_enhance_refuses_cleaned_empty_reply() -> None:
+    with pytest.raises(LiteLLMError, match="empty string downstream"):
+        _enhance_with_reply("   \n  ")
 
-got = _enhance_with_reply("A woman on a rooftop.")
-results.append(check("enhance returns cleaned prompt", got, ("A woman on a rooftop.",)))
 
-print()
-print(f"{sum(results)}/{len(results)} passed")
-sys.exit(0 if all(results) else 1)
+def test_enhance_returns_cleaned_prompt() -> None:
+    assert _enhance_with_reply("A woman on a rooftop.") == ("A woman on a rooftop.",)

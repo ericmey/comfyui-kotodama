@@ -1,79 +1,64 @@
 """System-prompt library, checked against the real folder."""
 
-import sys
-from pathlib import Path
+import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from kotodama import prompts  # noqa: E402
-
-results = []
+from kotodama import prompts
+from kotodama.prompts import _strip_banners
 
 
-def check(label, ok):
-    print(f"[{'PASS' if ok else 'FAIL'}] {label}")
-    results.append(ok)
-
-
-names = prompts.available()
-check(f"krea2 discovered (found: {names})", "krea2" in names)
-check("text-only default discovered", "text-to-image" in names)
-check("text-only prompt does not claim to see an image", "do not invent" in prompts.load("text-to-image"))
-
-body = prompts.load("krea2")
-check("krea2 loads non-empty", len(body) > 1000)
-check("START banner stripped", "########START" not in body)
-check("END banner stripped", "##########END" not in body)
-check("instruction survives", "Output ONLY the prompt" in body)
-
-
-# Forgiving banner strip: a rewrap or whitespace edit of the canonical banner
-# should still be removed. Done in-process rather than touching real files.
-from kotodama.prompts import _strip_banners  # noqa: E402
-
-sample = "real prompt line\n### START ###\nmore prompt\n### END ###\n"
-check(
-    "rewrapped banners stripped",
-    _strip_banners(sample) == "real prompt line\nmore prompt",
-)
-check(
-    "narrative comment with the word START survives",
-    "### NARRATIVE START ###"
-    in _strip_banners("### NARRATIVE START ###\nbody"),
-)
-
-try:
-    prompts.load("does-not-exist")
-    check("missing prompt raises", False)
-except FileNotFoundError as exc:
-    check("missing prompt raises and lists what IS available", "krea2" in str(exc))
-
-for crafted in ("../README", "/tmp/x", "..\\README"):
-    try:
-        prompts.load(crafted)
-        check(f"path-shaped name {crafted!r} rejected", False)
-    except FileNotFoundError:
-        check(f"path-shaped name {crafted!r} rejected", True)
-
-# A tar from a Mac drops "._krea2" next to "krea2" on a Linux box; it showed
-# up in the live dropdown on rika before this filter existed.
-_junk = prompts.PROMPT_DIR / "._junktest.md"
-_dup_md = prompts.PROMPT_DIR / "_duptest.md"
-_dup_txt = prompts.PROMPT_DIR / "_duptest.txt"
-try:
-    _junk.write_text("x", encoding="utf-8")
-    check("AppleDouble/dotfiles excluded from the menu",
-          not any(n.startswith(".") for n in prompts.available()))
-    _dup_md.write_text("from md", encoding="utf-8")
-    _dup_txt.write_text("from txt", encoding="utf-8")
+def test_bundled_prompts_are_discovered() -> None:
     names = prompts.available()
-    check("duplicate stems appear once", names.count("_duptest") == 1)
-    check("load prefers .md when both exist", prompts.load("_duptest") == "from md")
-finally:
-    _junk.unlink(missing_ok=True)
-    _dup_md.unlink(missing_ok=True)
-    _dup_txt.unlink(missing_ok=True)
+    assert "krea2" in names
+    assert "text-to-image" in names  # text-only default discovered
 
-print()
-print(f"{sum(results)}/{len(results)} passed")
-sys.exit(0 if all(results) else 1)
+
+def test_text_only_prompt_does_not_claim_to_see_an_image() -> None:
+    assert "do not invent" in prompts.load("text-to-image")
+
+
+def test_krea2_loads_with_banners_stripped() -> None:
+    body = prompts.load("krea2")
+    assert len(body) > 1000
+    assert "########START" not in body
+    assert "##########END" not in body
+    assert "Output ONLY the prompt" in body  # the instruction survives
+
+
+def test_rewrapped_banners_stripped() -> None:
+    # A rewrap or whitespace edit of the canonical banner should still be removed.
+    sample = "real prompt line\n### START ###\nmore prompt\n### END ###\n"
+    assert _strip_banners(sample) == "real prompt line\nmore prompt"
+
+
+def test_narrative_comment_with_the_word_start_survives() -> None:
+    assert "### NARRATIVE START ###" in _strip_banners("### NARRATIVE START ###\nbody")
+
+
+def test_missing_prompt_raises_and_lists_what_is_available() -> None:
+    with pytest.raises(FileNotFoundError, match="krea2"):
+        prompts.load("does-not-exist")
+
+
+@pytest.mark.parametrize("crafted", ["../README", "/tmp/x", "..\\README"])
+def test_path_shaped_name_rejected(crafted: str) -> None:
+    with pytest.raises(FileNotFoundError):
+        prompts.load(crafted)
+
+
+def test_menu_hygiene_dotfiles_and_duplicate_stems() -> None:
+    # A tar from a Mac drops "._krea2" next to "krea2" on a Linux box; it showed
+    # up in the live dropdown before this filter existed.
+    junk = prompts.PROMPT_DIR / "._junktest.md"
+    dup_md = prompts.PROMPT_DIR / "_duptest.md"
+    dup_txt = prompts.PROMPT_DIR / "_duptest.txt"
+    try:
+        junk.write_text("x", encoding="utf-8")
+        assert not any(n.startswith(".") for n in prompts.available())
+        dup_md.write_text("from md", encoding="utf-8")
+        dup_txt.write_text("from txt", encoding="utf-8")
+        assert prompts.available().count("_duptest") == 1
+        assert prompts.load("_duptest") == "from md"  # .md preferred when both exist
+    finally:
+        junk.unlink(missing_ok=True)
+        dup_md.unlink(missing_ok=True)
+        dup_txt.unlink(missing_ok=True)

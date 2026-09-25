@@ -12,6 +12,22 @@ authors = [{name = "Eric Mey"}]
 Repository = "https://github.com/ericmey/comfyui-kotodama"
 Issues = "https://github.com/ericmey/comfyui-kotodama/issues"
 
+[dependency-groups]
+# aiohttp is provided by ComfyUI at runtime; the settings tests need it here.
+dev = ["pytest>=8", "ruff>=0.6", "aiohttp>=3.9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+# Explicit, so a clone lints the same regardless of any parent ruff config.
+select = ["E", "F", "W", "I", "UP", "B"]
+
 [tool.comfy]
 PublisherId = "ericmey"
 DisplayName = "Kotodama Prompt Enhancer"

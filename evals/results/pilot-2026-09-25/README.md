@@ -1,6 +1,6 @@
 # Kotodama paired image pilot — 2026-09-25
 
-**Status: draft for independent verification.** This is a 12-case authored pilot with one image seed per case and two blinded AI-agent visual raters. It measures these paired renders, not human preference or general performance.
+**Status: independently reproduced before merge.** This is a 12-case authored pilot with one image seed per case and two blinded AI-agent visual raters. It measures these paired renders, not human preference or general performance.
 
 ## Question and method
 
@@ -25,7 +25,7 @@ The raters agreed that the rough prompt better matched the boat-under-bridge ide
 
 ## Scope and limits
 
-The ideas were authored by us and are not a blind holdout from users. There is one prompt completion and one render per arm and case, no repeated model sampling, and two AI-agent raters. Aoi explicitly regarded her visual-quality column as uncalibrated; the case notes and disagreement remain visible. The prompt-model routing alias and image-generator weight bytes were not immutably pinned. Exact pixel replay is therefore not promised, even though the recorded graphs and image bytes can be checked. This does not establish production quality, a population win rate, or a human preference result.
+The ideas were authored by us and are not a blind holdout from users. There is one prompt completion and one render per arm and case, no repeated model sampling, and two AI-agent raters. Aoi explicitly regarded her visual-quality column as uncalibrated; the case notes and disagreement remain visible. The prompt-model routing alias and image-generator weight bytes were not immutably pinned. The prompt endpoint's and image host's hardware and runtime details were not recorded; only the prompt runner's Python version is in the archive. Exact pixel replay is therefore not promised, even though the recorded graphs and image bytes can be checked. This does not establish production quality, a population win rate, or a human preference result.
 
 ## Recheck
 

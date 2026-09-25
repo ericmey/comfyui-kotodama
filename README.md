@@ -16,11 +16,11 @@ Two more runs (same preset, seed 11 for the image), rough idea on the left, Koto
 
 | *an old robot tending a rooftop garden at dawn* | Kotodama |
 |---|---|
-| ![](docs/images/example-robot-raw.jpg) | ![](docs/images/example-robot-enhanced.jpg) |
+| ![Render from the rough idea: an old robot in a rooftop garden](docs/images/example-robot-raw.jpg) | ![Render from Kotodama's prompt: a weathered robot tending raised beds at sunrise](docs/images/example-robot-enhanced.jpg) |
 
 | *a noodle stall on a rainy night street* | Kotodama |
 |---|---|
-| ![](docs/images/example-noodles-raw.jpg) | ![](docs/images/example-noodles-enhanced.jpg) |
+| ![Render from the rough idea: a noodle stall at night](docs/images/example-noodles-raw.jpg) | ![Render from Kotodama's prompt: a steaming noodle stall under lanterns on a rain-slick street](docs/images/example-noodles-enhanced.jpg) |
 
 The enhancer adds specific, steerable detail (the tabby's green eyes, the lightning, the lamplight on the glass), and the render follows it. These are illustrative runs with the `text-to-image` preset on a local OpenAI-compatible model, each prompt generated in 3–5 s. Your model and seed will produce different text. Whether enhancement improves images in general is what the evaluation measures, not this example.
 
@@ -41,7 +41,7 @@ The enhancer adds specific, steerable detail (the tabby's green eyes, the lightn
 - **Fallback models**: exact model IDs to offer if the server cannot list its models.
 - **Timeout (seconds)**: defaults to 300.
 
-Click **Save** (it asks you to confirm an endpoint change), then **Test connection**, which checks only the saved settings. They're stored in `<ComfyUI>/user/kotodama/.env`, so they survive node updates.
+Click **Save** (it asks you to confirm an endpoint change), then **Test connection**, which checks only the saved settings. They're stored in `<ComfyUI user directory>/kotodama/.env`, so they survive node updates.
 
 ![Kotodama settings in ComfyUI](docs/images/settings-panel-saved.png)
 

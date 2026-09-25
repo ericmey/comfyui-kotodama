@@ -3,16 +3,18 @@
 This eval asks whether Kotodama's rewritten prompt improves a rendered image for
 the user's original idea. It is a **12-case authored pilot**, not a claim about
 all users, models, or image generators. The cases were written before this
-runner was used. The outputs are not yet scored; a results page belongs here
-only after image generation and blind ratings are complete.
+runner was used. The completed pilot and its limits are in
+[`results/pilot-2026-09-25/README.md`](results/pilot-2026-09-25/README.md).
 
 ## Outcome and controls
 
 For each case, render two images through the **same ComfyUI workflow, image
-checkpoint, sampler settings, dimensions, and seed**. The only changed input is
-the text fed to the conditioning node: original rough idea versus Kotodama's
-enhanced prompt. A rater sees A/B images, the original idea, and its required
-details, but not which arm produced either image. The rater records:
+checkpoint, sampler settings, dimensions, and seed**. The only changed input on
+the image-generation path is the text fed to the conditioning node: original
+rough idea versus Kotodama's enhanced prompt. Archive metadata also records the
+arm and prompt, downstream of generation. A rater sees A/B images, the original
+idea, and its required details, but not which arm produced either image. The
+rater records:
 
 - Which image better matches the original idea (`A`, `B`, or `tie`).
 - Which image is visually stronger (`A`, `B`, or `tie`).

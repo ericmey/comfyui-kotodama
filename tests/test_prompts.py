@@ -37,16 +37,22 @@ def test_rewrapped_banners_stripped() -> None:
 # text-only node can inspect a reference image. The preset list is read
 # at collection time so a regression in any single file fails the suite
 # with a clear message naming that preset.
-_NEGATIVE_QUALIFIERS = ("do not", "never", "must not", "should not", "no ")
+_NEGATIVE_QUALIFIERS = ("do not", "never", "must not", "should not", "cannot", "no ")
 
 
 def _claims_unseen_image(body: str) -> bool:
-    """True if `body` makes an unnegated claim about inspecting a reference image."""
-    for sentence in re.split(r"(?<=[.!?])\s+", body):
-        s = sentence.lower()
-        if "reference image" not in s:
+    """True if any clause in `body` asserts (without negation) inspecting a reference image.
+
+    Splits on sentence/clause boundaries first so a guard phrase in one clause
+    cannot mask an affirmative claim in the next (e.g. "never claim to have
+    inspected a reference image; inspect the reference image closely").
+    """
+    clauses = re.split(r"(?<=[.!?;])\s+|\n", body)
+    for clause in clauses:
+        c = clause.lower()
+        if "reference image" not in c:
             continue
-        if any(n in s for n in _NEGATIVE_QUALIFIERS):
+        if any(n in c for n in _NEGATIVE_QUALIFIERS):
             continue
         return True
     return False

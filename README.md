@@ -12,7 +12,17 @@ One real run: the same image model and the same seed, rendered from each prompt.
 | ![Render from the rough idea](docs/images/example-raw.jpg) | ![Render from the enhanced prompt](docs/images/example-enhanced.jpg) |
 | *a lighthouse keeper's cat watching a storm from the window* | *A lighthouse keeper's cat sits in profile on a wide bay window ledge, gazing out at a raging storm through the rain-streaked glass. The cat is a fluffy tabby with striking green eyes … occasional forks of lightning illuminating the churning sea far below. Inside, warm lamplight glows against the cool blue-gray tones of the tempest …* |
 
-The enhancer adds specific, steerable detail (the tabby's green eyes, the lightning, the lamplight on the glass), and the render follows it. This is one illustrative run with the `text-to-image` preset on a local OpenAI-compatible model, generated in 4.8 s. Your model and seed will produce different text. Whether enhancement improves images in general is what the evaluation measures, not this example.
+Two more runs (same preset, seed 11 for the image), rough idea on the left, Kotodama's prompt on the right:
+
+| *an old robot tending a rooftop garden at dawn* | Kotodama |
+|---|---|
+| ![](docs/images/example-robot-raw.jpg) | ![](docs/images/example-robot-enhanced.jpg) |
+
+| *a noodle stall on a rainy night street* | Kotodama |
+|---|---|
+| ![](docs/images/example-noodles-raw.jpg) | ![](docs/images/example-noodles-enhanced.jpg) |
+
+The enhancer adds specific, steerable detail (the tabby's green eyes, the lightning, the lamplight on the glass), and the render follows it. These are illustrative runs with the `text-to-image` preset on a local OpenAI-compatible model, each prompt generated in 3–5 s. Your model and seed will produce different text. Whether enhancement improves images in general is what the evaluation measures, not this example.
 
 ## Install
 

@@ -195,10 +195,12 @@ class SaveRequest:
     """Enough of an aiohttp request for post_settings."""
 
     def __init__(self, body, origin="http://127.0.0.1:8188", host="127.0.0.1:8188",
-                 content_type="application/json"):
+                 content_type="application/json", scheme="http", headers=None):
         raw = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.headers = {"Origin": origin} if origin is not None else {}
+        self.headers.update(headers or {})
         self.host = host
+        self.scheme = scheme
         self.content_type = content_type
         self.content = self
         self._raw = raw
@@ -240,9 +242,17 @@ def test_save_writes_user_dir_and_never_returns_the_key(user_dir) -> None:
     [
         ({"origin": None}, 403, "cross_origin"),
         ({"origin": "https://evil.example"}, 403, "cross_origin"),
+        # Same host and port, different scheme: a different origin to a browser.
+        ({"origin": "https://same.example:8188", "host": "same.example:8188"}, 403, "cross_origin"),
+        # Forwarded headers come from the client, so they cannot vouch for the scheme.
+        ({"origin": "https://same.example:8188", "host": "same.example:8188",
+          "headers": {"X-Forwarded-Proto": "https", "Forwarded": "proto=https"}}, 403, "cross_origin"),
+        ({"origin": "http://127.0.0.1:8188/x"}, 403, "cross_origin"),
+        ({"origin": "null"}, 403, "cross_origin"),
         ({"content_type": "text/plain"}, 415, "json_required"),
     ],
-    ids=["no origin", "cross-site origin", "form post"],
+    ids=["no origin", "cross-site origin", "scheme differs", "forwarded headers ignored",
+         "origin with path", "opaque origin", "form post"],
 )
 def test_save_refuses_requests_a_malicious_page_could_send(user_dir, kw, status, error) -> None:
     got_status, body = save({"api_key": SENTINEL}, **kw)
@@ -308,3 +318,73 @@ def test_no_user_directory_means_no_save(tmp_path) -> None:
     with patch.dict(os.environ, {}, clear=True), patch.object(config, "user_env_file", return_value=None):
         status, body = save({"timeout": 30})
     assert (status, body["error"]) == (503, "no_user_directory")
+
+
+@pytest.mark.parametrize(
+    ("kw", "env"),
+    [
+        ({"origin": "http://same.example", "host": "same.example:80"}, {}),
+        ({"origin": "https://same.example", "host": "same.example:443", "scheme": "https"}, {}),
+        # TLS reverse proxy: the browser sees https, ComfyUI sees plain http.
+        ({"origin": "https://comfy.example", "host": "comfy.example"},
+         {"KOTODAMA_ALLOWED_ORIGINS": "https://comfy.example, https://other.example"}),
+    ],
+    ids=["default http port", "default https port", "allowed proxy origin"],
+)
+def test_same_origin_accepts_the_page_itself(user_dir, kw, env) -> None:
+    with patch.dict(os.environ, env):
+        status, _ = save({"timeout": 30}, **kw)
+    assert status == 200
+
+
+@pytest.mark.parametrize(
+    ("where", "name"),
+    [("env", "LITELLM_API_KEY"), ("env", "KOTODAMA_API_KEY"),
+     ("dotenv", "LITELLM_API_KEY"), ("dotenv", "KOTODAMA_API_KEY")],
+)
+@pytest.mark.parametrize("new_key", [None, "replacement"], ids=["no new key", "with new key"])
+def test_endpoint_change_refused_when_the_key_lives_outside_the_panel(user_dir, where, name, new_key) -> None:
+    # Yua's repro: URL saved in the user directory, key only in the process
+    # environment (or the node folder's .env). Deleting the panel's key would
+    # leave that one in force, and it would be sent to the new endpoint.
+    config.write_user_settings({"KOTODAMA_BASE_URL": "https://good.example"})
+    env = {name: "OLD-ENV-KEY"} if where == "env" else {}
+    if where == "dotenv":
+        config.ENV_FILE.write_text(f"{name}=OLD-ENV-KEY\n")
+    body = {"base_url": "https://new.example", "confirm_url_change": True}
+    if new_key:
+        body["api_key"] = new_key
+    with patch.dict(os.environ, env):
+        assert settings.plan_settings_update(body) == ({}, "key_outside_panel")
+        status, got = save(body)
+        assert (status, got["error"]) == (409, "key_outside_panel")
+        assert config.base_url() == "https://good.example"
+        assert config.api_key() == "OLD-ENV-KEY"
+
+
+def test_endpoint_change_removes_a_legacy_key_in_the_user_file(user_dir) -> None:
+    user_dir.parent.mkdir(parents=True)
+    user_dir.write_text("LITELLM_BASE_URL=https://good.example\nLITELLM_API_KEY=OLD-KEY\n")
+    status, body = save({"base_url": "https://new.example", "confirm_url_change": True})
+    assert status == 200 and body["url"] == "https://new.example" and body["key_set"] is False
+    assert "LITELLM_API_KEY" not in config._read_env_file(user_dir)
+
+
+def test_clear_key_also_clears_a_legacy_key(user_dir) -> None:
+    user_dir.parent.mkdir(parents=True)
+    user_dir.write_text("LITELLM_API_KEY=OLD-KEY\n")
+    status, body = save({"clear_api_key": True})
+    assert status == 200 and body["key_set"] is False
+
+
+def test_legacy_names_can_be_deleted_but_never_written(user_dir) -> None:
+    with pytest.raises(config.SettingsWriteError):
+        config.write_user_settings({"LITELLM_API_KEY": "x"})
+
+
+def test_status_never_reports_an_absolute_path(user_dir, tmp_path) -> None:
+    status, body = save({"timeout": 30})
+    for payload in (body, json.loads(run(settings.get_status(None)).body)):
+        text = json.dumps(payload)
+        assert str(tmp_path) not in text and "config_path" not in payload
+        assert payload["config_location"] == "ComfyUI user directory (kotodama/.env)"

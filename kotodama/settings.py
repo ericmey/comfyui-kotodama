@@ -4,12 +4,18 @@ The Settings panel reads status and saves the endpoint, key, fallback models
 and timeout into ComfyUI's user directory. ComfyUI has no login by default, so
 the save route is written against the obvious abuses:
 
-- it accepts only same-origin JSON from a browser (cross-site pages and
-  requests without an Origin are refused);
+- it accepts only same-origin JSON from a browser: the Origin's scheme, host
+  and port must match this server (or an origin listed in
+  KOTODAMA_ALLOWED_ORIGINS, for a TLS reverse proxy); cross-site pages and
+  requests without an Origin are refused. X-Forwarded-* headers are ignored,
+  because any client can send them;
 - the API key is write-only: it is never returned, logged or shown;
 - changing the endpoint needs explicit confirmation AND clears the saved key
   unless a new key is sent with it, so redirecting the URL cannot forward your
-  existing key to someone else's server;
+  existing key to someone else's server. If the key is set where the panel
+  cannot remove it (an environment variable or the node folder's .env), the
+  endpoint cannot be changed from the panel at all;
+- the status never reports absolute paths;
 - a connection test only ever uses saved configuration, so the server is not
   an arbitrary URL probe.
 
@@ -54,7 +60,7 @@ def status_payload() -> dict:
             "timeout": config.shadowed_by_environment("KOTODAMA_TIMEOUT"),
         },
         "writable": config.user_env_file() is not None,
-        "config_path": str(config.config_path()),
+        "config_location": config.config_location(),
     }
 
 
@@ -128,15 +134,45 @@ _MAX_SETTINGS_BODY = 16 * 1024
 _SETTINGS_FIELDS = {"base_url", "api_key", "clear_api_key", "fallback_models", "timeout", "confirm_url_change"}
 
 
+_DEFAULT_PORTS = {"http": 80, "https": 443}
+
+
+def _origin(scheme: str, netloc: str) -> tuple[str, str, int] | None:
+    """Normalise to (scheme, host, port) as a browser compares origins; None if malformed."""
+    scheme = (scheme or "").lower()
+    if scheme not in _DEFAULT_PORTS or not netloc:
+        return None
+    try:
+        parts = urlsplit(f"//{netloc}")
+        port = parts.port
+    except ValueError:
+        return None
+    if not parts.hostname or parts.username is not None or parts.password is not None:
+        return None
+    return scheme, parts.hostname, port or _DEFAULT_PORTS[scheme]
+
+
 def _same_origin(request) -> bool:
     """A browser always sends Origin on a cross-site POST; require it to match this server."""
-    origin = request.headers.get("Origin", "")
-    if not origin:
-        return False
     try:
-        return urlsplit(origin).netloc.lower() == (request.host or "").lower()
+        sent = urlsplit(request.headers.get("Origin", ""))
     except ValueError:
         return False
+    if sent.path or sent.query or sent.fragment:
+        return False
+    got = _origin(sent.scheme, sent.netloc)
+    if got is None:
+        return False
+    if got == _origin(request.scheme, request.host or ""):
+        return True
+    for allowed in config.allowed_origins():
+        try:
+            parts = urlsplit(allowed)
+        except ValueError:
+            continue
+        if got == _origin(parts.scheme, parts.netloc):
+            return True
+    return False
 
 
 def _refuse(web, status: int, error: str):
@@ -158,6 +194,7 @@ def plan_settings_update(body: dict) -> tuple[dict[str, str | None], str | None]
         return {}, "invalid_api_key"
     if body.get("clear_api_key") is True:
         updates["KOTODAMA_API_KEY"] = None
+        updates["LITELLM_API_KEY"] = None
 
     if "base_url" in body:
         url = body["base_url"]
@@ -170,7 +207,13 @@ def plan_settings_update(body: dict) -> tuple[dict[str, str | None], str | None]
             if body.get("confirm_url_change") is not True:
                 return {}, "confirm_url_change"
             # Never let a new endpoint receive the key that was saved for the old one.
+            # A key the panel cannot delete would follow the URL, even with a new
+            # key saved here (the environment outranks it), so refuse outright.
+            if config.key_outside_panel():
+                return {}, "key_outside_panel"
             updates["KOTODAMA_API_KEY"] = None
+            updates["LITELLM_API_KEY"] = None
+            updates["LITELLM_BASE_URL"] = None
         updates["KOTODAMA_BASE_URL"] = url or None
 
     if new_key is not None:
@@ -213,7 +256,7 @@ async def post_settings(request):
         return _refuse(web, 400, "invalid_json")
     updates, error = plan_settings_update(body)
     if error:
-        return _refuse(web, 409 if error == "confirm_url_change" else 400, error)
+        return _refuse(web, 409 if error in ("confirm_url_change", "key_outside_panel") else 400, error)
     try:
         config.write_user_settings(updates)
     except config.SettingsWriteError as exc:

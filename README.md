@@ -28,7 +28,7 @@ The enhancer adds specific, steerable detail (the tabby's green eyes, the lightn
 
 In a 12-case authored paired-image pilot, two blinded AI-agent raters each chose the Kotodama-enhanced image for idea match on 8 of 12 cases and each counted five more visible details out of 48.
 
-**Scope:** one image seed per case; the raters are AI agents, not people; prompt and image model weights and the endpoint/host runtime are not pinned by hash. So this makes no population or human-preference claim. One case (`spatial-04`) was a shared win for the rough prompt. Every pair, rating, disagreement and raw receipt is in [`evals/results/pilot-2026-09-25`](evals/results/pilot-2026-09-25).
+**Scope:** one image seed per case; the raters are AI agents, not people; prompt and image model weights were not immutably pinned, and the endpoint/host hardware and runtime details were not recorded. So this makes no population or human-preference claim. One case (`spatial-04`) was a shared win for the rough prompt. Every pair, rating, disagreement and raw receipt is in [`evals/results/pilot-2026-09-25`](evals/results/pilot-2026-09-25).
 
 ## Install
 

@@ -38,6 +38,8 @@ from . import client, config
 
 _TEST_INTERVAL = 5.0
 _TEST_TIMEOUT = 2.0
+# Large catalogues are big: OpenRouter's /v1/models is ~750 KB. Bounded, but not at 64 KB.
+_TEST_MAX_BYTES = 8 * 1024 * 1024
 _TEST_LOCK = threading.Lock()
 _LAST_TEST = 0.0
 
@@ -88,7 +90,10 @@ def probe_saved_endpoint() -> dict:
     try:
         with client.urlopen(req, timeout=_TEST_TIMEOUT) as response:
             status = response.status
-            payload = json.loads(response.read(65537))
+            raw = response.read(_TEST_MAX_BYTES + 1)
+        if len(raw) > _TEST_MAX_BYTES:
+            return {"ok": False, "status": status, "error": "too_large"}
+        payload = json.loads(raw)
         if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
             return {"ok": False, "status": status, "error": "bad_response"}
         return {"ok": True, "status": status, "error": None}

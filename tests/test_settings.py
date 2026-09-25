@@ -402,3 +402,28 @@ def test_clear_key_refused_when_the_key_lives_outside_the_panel(user_dir, where)
         status, got = save({"clear_api_key": True})
         assert (status, got["error"]) == (409, "key_outside_panel")
     assert config._read_env_file(user_dir)["KOTODAMA_API_KEY"] == "PANEL-KEY"  # nothing written
+
+
+class SizedResponse(Response):
+    def __init__(self, body: bytes):
+        self.body = body
+
+    def read(self, limit):
+        return self.body[:limit]
+
+
+def _catalogue(count: int) -> bytes:
+    return json.dumps({"data": [{"id": f"vendor/model-{i:06d}", "pad": "x" * 1500} for i in range(count)]}).encode()
+
+
+def test_connection_test_accepts_a_large_model_catalogue(configured) -> None:
+    body = _catalogue(600)  # ~0.9 MB, like OpenRouter's 459-model list
+    assert len(body) > 65537
+    with patch.object(client, "urlopen", return_value=SizedResponse(body)):
+        assert settings.probe_saved_endpoint() == {"ok": True, "status": 200, "error": None}
+
+
+def test_connection_test_bounds_the_read(configured) -> None:
+    body = b" " * (settings._TEST_MAX_BYTES + 1)
+    with patch.object(client, "urlopen", return_value=SizedResponse(body)):
+        assert settings.probe_saved_endpoint() == {"ok": False, "status": 200, "error": "too_large"}

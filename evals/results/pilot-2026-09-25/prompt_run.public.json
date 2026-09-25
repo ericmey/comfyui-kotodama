@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "purpose": "prompt generation only; no image-quality claim",
+  "git_head": "1b29f935b650fab8dfb671b667d6cce13098509d",
+  "git_dirty": false,
+  "python_version": "3.14.7",
+  "cases_sha256": "c70b984ce088d6bc1402b8803782787632e150f45a5a64e29e0d24e4222557ca",
+  "system_prompt": "text-to-image",
+  "system_prompt_sha256": "bc59d014b131d54d070bfcaa6790cbee0e6107d492dedfb92de870f2feaad8e2",
+  "model": "[private routing alias redacted]",
+  "model_revision_declared": "litellm-deployment-ad0d4e33-8736-4b5a-b0f5-2bfcca5a6738__backend-ornith-1.5-35b-a3b-uncensored-vision__weights-unverified",
+  "model_revision_verified_by_runner": false,
+  "temperature": 0.0,
+  "max_tokens": 1024,
+  "seed": 5119,
+  "rows": [
+    {
+      "id": "sign-01",
+      "idea": "Rainy Tokyo alley at night. A red ramen stall with a sign that says OPEN LATE. One customer under a yellow umbrella.",
+      "must_show": [
+        "red ramen stall",
+        "one customer",
+        "yellow umbrella",
+        "sign reads OPEN LATE"
+      ],
+      "enhanced": "A rainy Tokyo alley at night, illuminated by the warm glow of a red ramen stall with steam rising into the cool air. The narrow street glistens with wet pavement reflecting neon lights and the stall's lanterns. A single customer stands under a bright yellow umbrella, watching the cook work inside the small food stall. The stall displays a sign reading \"OPEN LATE\" in legible lettering. Atmospheric mist and rain create a moody, cinematic scene with rich contrasts between the warm stall lighting and the cool blue tones of the rainy night.",
+      "status": "ok",
+      "latency_ms": 3084.668
+    },
+    {
+      "id": "count-02",
+      "idea": "Exactly three white cranes standing in shallow water at sunrise, with a dark mountain behind them. Ink wash painting.",
+      "must_show": [
+        "exactly three cranes",
+        "shallow water",
+        "dark mountain",
+        "ink wash style"
+      ],
+      "enhanced": "Exactly three white cranes standing in shallow water at sunrise, their plum rendered in delicate ink wash strokes with subtle gradations of grey defining the folds of their wings and the long curve of their necks. The cranes stand in a loose grouping within a reflective pool, their slender legs mirrored in the still surface, while a single crane tilts its head as if calling. Behind them rises a dark mountain, its mass painted in deep, saturated ink that fades into softer tones along the ridgeline, catching the first warm light of dawn. The sky glows with the pale amber and rose of sunrise, bleeding gently into the horizon, and a light mist drifts low across the water. The composition follows the tradition of ink wash painting, with generous negative space, flowing brushwork, and a restrained palette that emphasizes atmosphere, balance, and quiet stillness.",
+      "status": "ok",
+      "latency_ms": 4691.444
+    },
+    {
+      "id": "action-03",
+      "idea": "A mechanic catches a falling silver wrench while standing beside an open engine bay. Low angle, documentary photo.",
+      "must_show": [
+        "mechanic catches a falling wrench",
+        "silver wrench",
+        "open engine bay",
+        "low camera angle"
+      ],
+      "enhanced": "A mechanic standing beside an open engine bay, mid-action, catching a falling silver wrench in one hand. Low angle shot looking up at the figure, documentary photography style with naturalistic, unposed realism. The engine bay is open behind them, revealing mechanical components and machinery. Harsh or practical workshop lighting casts realistic shadows, emphasizing the candid, momentary quality of the scene. The silver wrench glints under the light as it's caught mid-catch, capturing a split-second of motion and concentration on the mechanic's face.",
+      "status": "ok",
+      "latency_ms": 2952.149
+    },
+    {
+      "id": "spatial-04",
+      "idea": "A small blue boat passes under a stone bridge. A red bicycle is parked on the bridge, not in the boat. Overcast daylight.",
+      "must_show": [
+        "blue boat under bridge",
+        "stone bridge",
+        "red bicycle on bridge",
+        "overcast daylight"
+      ],
+      "enhanced": "A small blue boat glides beneath an old stone bridge, its hull cutting gently through calm water as it passes through the arched opening. A red bicycle stands parked on the bridge above, leaning against the weathered stone railing, its wheels and frame clearly visible and not in the boat. Overcast daylight bathes the scene in soft, even light with no harsh shadows, casting a muted, gentle atmosphere over the water, the aged masonry, and the quiet riverside setting.",
+      "status": "ok",
+      "latency_ms": 2689.151
+    },
+    {
+      "id": "material-05",
+      "idea": "A cracked porcelain teacup repaired with visible gold seams on a rough wooden table. Close-up still life, soft side light.",
+      "must_show": [
+        "cracked porcelain teacup",
+        "visible gold repair seams",
+        "rough wooden table",
+        "soft side light"
+      ],
+      "enhanced": "A close-up still life of a cracked porcelain teacup repaired with visible gold seams, the kintsugi-style mending lines tracing across the white ceramic surface in raised metallic gold. The teacup rests on a rough wooden table with visible grain, knots, and weathered texture. Soft side light falls across the scene, casting gentle shadows and highlighting the glossy porcelain against the matte gold repairs, creating a quiet, contemplative atmosphere with delicate highlights and a calm, understated mood.",
+      "status": "ok",
+      "latency_ms": 2717.899
+    },
+    {
+      "id": "negative-06",
+      "idea": "A quiet empty subway platform at 2 a.m. No people and no train. Fluorescent ceiling lights, symmetrical composition.",
+      "must_show": [
+        "empty subway platform",
+        "no people",
+        "no train",
+        "symmetrical composition"
+      ],
+      "enhanced": "A quiet, empty subway platform at 2 a.m., completely devoid of people and with no train present. The scene is defined by a symmetrical composition looking down the length of the platform, with the parallel rails and platform edges converging toward a vanishing point in the center. Overhead rows of fluorescent ceiling lights stretch into the distance, casting a cool, even, slightly greenish glow across the tiled floor and throwing long, soft shadows. The walls are lined with pale ceramic tiles, and a continuous yellow safety line runs along the edge of the platform. Dim, flickering light spills from distant advertising panels and exit signs, while the far end fades into shadow. The atmosphere is still, hushed, and slightly eerie, evoking the solitude of a city asleep beneath the surface.",
+      "status": "ok",
+      "latency_ms": 4327.167
+    },
+    {
+      "id": "motion-07",
+      "idea": "An elderly woman in a green coat runs after a departing tram, reaching for a dropped red scarf. Candid street photograph.",
+      "must_show": [
+        "elderly woman in green coat",
+        "running after departing tram",
+        "reaching for red scarf",
+        "candid photo style"
+      ],
+      "enhanced": "A candid street photograph capturing an elderly woman in a long green coat running after a departing tram, her body leaning forward with urgency as she reaches one arm out toward a red scarf that has slipped from her grasp and floats mid-air just below the tram's receding wheels. The scene unfolds on an urban street, the tram's metal body gleaming as it pulls away, its doors closing. Her expression mixes determination and mild alarm, her posture conveying the spontaneous, unposed quality of a fleeting moment. Natural daylight illuminates the scene, casting soft shadows on the pavement, with the muted tones of a city backdrop blurring slightly from the sense of motion. The vivid red of the scarf provides a striking contrast against the green coat and grey surroundings, freezing this small human drama in a single decisive instant.",
+      "status": "ok",
+      "latency_ms": 4349.404
+    },
+    {
+      "id": "weather-08",
+      "idea": "Desert observatory during a snowstorm. One telescope dome open to the sky; orange emergency light reflected in snow. Wide frame.",
+      "must_show": [
+        "desert observatory",
+        "snowstorm",
+        "one open telescope dome",
+        "orange light reflected in snow"
+      ],
+      "enhanced": "A desert observatory during a fierce snowstorm, captured in a wide frame. A single telescope dome stands open to the stormy sky, its mechanical structure partially visible. Orange emergency light spills from the observatory building, casting warm reflections across the accumulating snow—the glowing light shimmering and mirroring in the white drifts below. Harsh wind-driven snow sweeps across the arid landscape, swirling around the solitary structure. Cold blue-white tones dominate the scene, contrasted sharply by the vivid orange emergency lighting. The vast desert stretches into the background, obscured by blowing snow and low visibility, emphasizing the isolation of the observatory against the winter storm.",
+      "status": "ok",
+      "latency_ms": 3564.451
+    },
+    {
+      "id": "typography-09",
+      "idea": "Minimal poster for a fictional jazz club. The only visible words are BLUE HOUR, set large in cream letters on navy. A single trumpet silhouette.",
+      "must_show": [
+        "exact words BLUE HOUR",
+        "cream letters on navy",
+        "single trumpet silhouette",
+        "no other visible words"
+      ],
+      "enhanced": "A minimal poster design for a fictional jazz club, featuring clean, uncluttered composition with generous negative space. The only visible text reads \"BLUE HOUR,\" rendered large in cream-colored letters set against a deep navy background. A single trumpet silhouette appears as the sole graphic element, its elegant form rendered in a solid, simple shape that complements the restrained aesthetic. The overall design is flat and graphic, with a sophisticated, understated mood evoking the intimate atmosphere of a late-night jazz venue.",
+      "status": "ok",
+      "latency_ms": 2774.927
+    },
+    {
+      "id": "relation-10",
+      "idea": "A black cat watches a goldfish through the curved glass of a bowl. The cat is behind the bowl, and its reflection appears in the glass. Warm kitchen light.",
+      "must_show": [
+        "black cat behind bowl",
+        "goldfish inside bowl",
+        "cat reflection in glass",
+        "warm kitchen light"
+      ],
+      "enhanced": "A black cat watches a goldfish through the curved glass of a round fishbowl, the cat positioned behind the bowl so its reflection appears faintly in the curved glass surface alongside the swimming goldfish inside. The cat's dark silhouette and reflective eyes contrast against the warm ambient light of a kitchen, with soft golden illumination glowing from within the water-filled bowl and casting gentle highlights along the glass curves. The scene is intimate and quiet, capturing the moment of feline curiosity as the cat observes the fish, bathed in cozy warm kitchen lighting that creates a calm, atmospheric mood.",
+      "status": "ok",
+      "latency_ms": 3237.506
+    },
+    {
+      "id": "architecture-11",
+      "idea": "Brutalist library interior with one long spiral staircase and sunlight forming a bright rectangle on the floor. No books floating. Architectural photograph.",
+      "must_show": [
+        "brutalist library",
+        "one spiral staircase",
+        "sunlit rectangle on floor",
+        "no floating books"
+      ],
+      "enhanced": "A brutalist library interior rendered in an architectural photograph, defined by raw exposed concrete walls and a single long spiral staircase that sweeps through the space. Bright sunlight pours in, forming a sharp bright rectangle of light on the floor. Clean, uncluttered composition emphasizing the geometric forms and dramatic interplay of light and shadow, with no books floating anywhere in the scene.",
+      "status": "ok",
+      "latency_ms": 2088.309
+    },
+    {
+      "id": "character-12",
+      "idea": "Two adult astronauts exchange a paper map on a red Mars plain. One suit is blue, the other white. Their helmets stay on. Cinematic wide shot.",
+      "must_show": [
+        "two adult astronauts",
+        "exchange paper map",
+        "blue suit and white suit",
+        "both helmets on"
+      ],
+      "enhanced": "Two adult astronauts exchange a paper map on a vast red Mars plain, cinematic wide shot. One astronaut wears a blue spacesuit, the other a white spacesuit; both keep their helmets securely on, visors catching the pale sunlight. They face one another across the rust-colored terrain, hands meeting as they share the unfolded map between them. The Martian landscape stretches wide around them—rolling red dunes and distant rocky ridges beneath a thin, dusty sky. Soft, directional sunlight casts long shadows across the reddish ground, lending a dramatic, filmic quality to the scene with rich contrast and atmospheric depth.",
+      "status": "ok",
+      "latency_ms": 3355.898
+    }
+  ],
+  "public_redaction": {
+    "source_sha256": "45abdbb6c8e8a1a11f7df5ce7a357b11657639fb1d998afe9fc456b6badfa8ba",
+    "fields_changed": [
+      "model"
+    ],
+    "reason": "private routing alias removed; observed backend identity is operator-declared and model weight bytes were not verified"
+  }
+}

@@ -1,0 +1,13 @@
+id,image_a,image_b,intent_winner,quality_winner,details_a,details_b,notes
+sign-01,images/sign-01-A.png,images/sign-01-B.png,A,A,4,3,"A has the exact sign and one umbrella customer; B adds a seated customer and more stray lettering."
+count-02,images/count-02-A.png,images/count-02-B.png,A,A,4,3,"Both have three cranes; A is visibly ink-wash while B reads more photographic."
+action-03,images/action-03-A.png,images/action-03-B.png,A,B,4,3,"A clearly suspends the falling wrench above the catching hand; B is cleaner but already holds it."
+spatial-04,images/spatial-04-A.png,images/spatial-04-B.png,A,A,4,4,"Both satisfy all four; A makes the boat passing under the arch clearest."
+material-05,images/material-05-A.png,images/material-05-B.png,B,B,4,4,"Both satisfy all four; B reads as a plausible intact kintsugi repair rather than a missing wedge."
+negative-06,images/negative-06-A.png,images/negative-06-B.png,A,A,4,4,"Both are empty and train-free; A has the stronger exact symmetry and cleaner architectural framing."
+motion-07,images/motion-07-A.png,images/motion-07-B.png,A,B,4,2,"A shows the dropped scarf still out of reach and the chase; B holds the scarf beside an open tram."
+weather-08,images/weather-08-A.png,images/weather-08-B.png,A,B,4,4,"Both satisfy all four; A makes the single open dome clearest, while B is the stronger wide storm image."
+typography-09,images/typography-09-A.png,images/typography-09-B.png,A,A,4,4,"Both render the exact two words and one trumpet; A is the cleaner minimal poster."
+relation-10,images/relation-10-A.png,images/relation-10-B.png,B,B,3,3,"Both show the cat through curved glass but neither gives a distinct separate reflection; B has the clearer cat-bowl-fish relation."
+architecture-11,images/architecture-11-A.png,images/architecture-11-B.png,B,A,4,4,"Both satisfy all four; B reads more unmistakably as a library, while A is the cleaner architectural photograph."
+character-12,images/character-12-A.png,images/character-12-B.png,B,B,4,4,"Both satisfy the four listed details; B best preserves the requested cinematic wide-shot exchange."

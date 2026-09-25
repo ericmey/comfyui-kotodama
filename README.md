@@ -44,13 +44,13 @@ Your input text and selected system prompt are sent to the configured chat endpo
 
 ## Tests
 
-The offline suite runs without ComfyUI or a live provider:
+The offline suite runs without ComfyUI or a live provider. With [uv](https://docs.astral.sh/uv/):
 
 ```sh
-python3 tests/test_clean.py
-python3 tests/test_prompts.py
-python3 tests/test_client.py
+uv run --group dev pytest
 ```
+
+Or with plain pip: `pip install pytest aiohttp` and then `python -m pytest`.
 
 The settings route contract also has an offline test that needs `aiohttp` (already provided by ComfyUI): `python3 tests/test_settings.py`.
 

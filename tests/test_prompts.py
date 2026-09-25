@@ -1,5 +1,7 @@
 """System-prompt library, checked against the real folder."""
 
+import re
+
 import pytest
 
 from kotodama import prompts
@@ -28,6 +30,51 @@ def test_rewrapped_banners_stripped() -> None:
     # A rewrap or whitespace edit of the canonical banner should still be removed.
     sample = "real prompt line\n### START ###\nmore prompt\n### END ###\n"
     assert _strip_banners(sample) == "real prompt line\nmore prompt"
+
+
+# Prompt-library contract: every discovered preset must (a) load non-empty,
+# (b) have its wrapper banners stripped, and (c) not affirm that the
+# text-only node can inspect a reference image. The preset list is read
+# at collection time so a regression in any single file fails the suite
+# with a clear message naming that preset.
+_NEGATIVE_QUALIFIERS = ("do not", "never", "must not", "should not", "cannot", "no ")
+
+
+def _claims_unseen_image(body: str) -> bool:
+    """True if any clause in `body` asserts (without negation) inspecting a reference image.
+
+    Splits on sentence/clause boundaries first so a guard phrase in one clause
+    cannot mask an affirmative claim in the next (e.g. "never claim to have
+    inspected a reference image; inspect the reference image closely").
+    """
+    clauses = re.split(r"(?<=[.!?;])\s+|\n", body)
+    for clause in clauses:
+        c = clause.lower()
+        if "reference image" not in c:
+            continue
+        if any(n in c for n in _NEGATIVE_QUALIFIERS):
+            continue
+        return True
+    return False
+
+
+_PRESETS = [
+    name
+    for name in prompts.available()
+    if not name.startswith("<")  # placeholder returned when the folder is empty / missing
+]
+
+
+@pytest.mark.parametrize("preset", _PRESETS)
+def test_prompt_library_contract(preset: str) -> None:
+    body = prompts.load(preset)
+    assert body.strip(), f"{preset}: prompt must load non-empty"
+    assert "########START" not in body, f"{preset}: wrapper START banner must be stripped"
+    assert "##########END" not in body, f"{preset}: wrapper END banner must be stripped"
+    assert not _claims_unseen_image(body), (
+        f"{preset}: text-only contract violated - "
+        "prompt asserts it can inspect a reference image"
+    )
 
 
 def test_narrative_comment_with_the_word_start_survives() -> None:

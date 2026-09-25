@@ -2,9 +2,25 @@
 
 Kotodama takes a rough text idea, asks an OpenAI-compatible chat model to rewrite it as an image prompt, and returns a `STRING` for `CLIPTextEncode`. It accepts **text only**. It does not inspect reference images.
 
+
+## What it does
+
+One real run: the same image model and the same seed, rendered from each prompt.
+
+| Your rough idea | Kotodama's prompt |
+|---|---|
+| ![Render from the rough idea](docs/images/example-raw.jpg) | ![Render from the enhanced prompt](docs/images/example-enhanced.jpg) |
+| *a lighthouse keeper's cat watching a storm from the window* | *A lighthouse keeper's cat sits in profile on a wide bay window ledge, gazing out at a raging storm through the rain-streaked glass. The cat is a fluffy tabby with striking green eyes … occasional forks of lightning illuminating the churning sea far below. Inside, warm lamplight glows against the cool blue-gray tones of the tempest …* |
+
+The enhancer adds specific, steerable detail (the tabby's green eyes, the lightning, the lamplight on the glass), and the render follows it. This is one illustrative run with the `text-to-image` preset on a local OpenAI-compatible model, generated in 4.8 s. Your model and seed will produce different text. Whether enhancement improves images in general is what the evaluation measures, not this example.
+
 ## Install
 
-Clone or copy this repository into `ComfyUI/custom_nodes/comfyui-kotodama`, then restart ComfyUI. The node uses Python's standard library and needs no extra package install.
+**From ComfyUI-Manager (recommended):** open **Custom Nodes Manager**, search for **Kotodama Prompt Enhancer**, install, and restart ComfyUI. It is published on the [Comfy Registry](https://registry.comfy.org/nodes/comfyui-kotodama) as `comfyui-kotodama`.
+
+**With comfy-cli:** `comfy node install comfyui-kotodama`
+
+**Manually:** clone or copy this repository into `ComfyUI/custom_nodes/comfyui-kotodama`, then restart ComfyUI. The node uses Python's standard library and needs no extra package install.
 
 Copy `.env.example` to `.env` in this directory and configure the root URL of an OpenAI-compatible service:
 

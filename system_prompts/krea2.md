@@ -34,4 +34,5 @@ Organize as one or two cohesive, flowing paragraphs that move logically through 
 "A dynamic low-angle medium shot of a young East Asian woman with short choppy platinum blonde hair and heavy bangs, looking back over her bare shoulder with a playful expression, lips slightly pursed. She wears a structured black architectural top with thin straps and a protruding bust detail, delicate gold hoop earrings, and has warm skin tones. Her arm is bent with one hand resting on her hip. The composition places her against a solid striking crimson red background with soft directional studio lighting that creates gentle shadows and highlights on her face and shoulders. Shallow depth of field keeps sharp focus on her features while the background remains clean and bold. Cinematic color grading, high-fashion editorial photography aesthetic, masterful composition, rich textures and refined details."
 
 **IMPORTANT:** Output ONLY the prompt. Do not add any conversational text, explanations, analysis, or formatting before or after the prompt itself.
+
 ##########END#############

@@ -22,7 +22,13 @@ Two more runs (same preset, seed 11 for the image), rough idea on the left, Koto
 |---|---|
 | ![Render from the rough idea: a noodle stall at night](docs/images/example-noodles-raw.jpg) | ![Render from Kotodama's prompt: a steaming noodle stall under lanterns on a rain-slick street](docs/images/example-noodles-enhanced.jpg) |
 
-The enhancer adds specific, steerable detail (the tabby's green eyes, the lightning, the lamplight on the glass), and the render follows it. These are illustrative runs with the `text-to-image` preset on a local OpenAI-compatible model, each prompt generated in 3–5 s. Your model and seed will produce different text. Whether enhancement improves images in general is what the evaluation measures, not this example.
+The enhancer adds specific, steerable detail (the tabby's green eyes, the lightning, the lamplight on the glass), and the render follows it. These are illustrative runs with the `text-to-image` preset on a local OpenAI-compatible model, each prompt generated in 3–5 s. Your model and seed will produce different text. These examples are illustrations, not evidence. The evidence is below.
+
+### Evaluation
+
+In a 12-case authored paired-image pilot, two blinded AI-agent raters each chose the Kotodama-enhanced image for idea match on 8 of 12 cases and each counted five more visible details out of 48.
+
+**Scope:** one image seed per case; the raters are AI agents, not people; prompt and image model weights and the endpoint/host runtime are not pinned by hash. So this makes no population or human-preference claim. One case (`spatial-04`) was a shared win for the rough prompt. Every pair, rating, disagreement and raw receipt is in [`evals/results/pilot-2026-09-25`](evals/results/pilot-2026-09-25).
 
 ## Install
 

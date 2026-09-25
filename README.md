@@ -52,7 +52,7 @@ uv run --group dev pytest
 
 Or with plain pip: `pip install pytest aiohttp` and then `python -m pytest`.
 
-The settings route contract also has an offline test that needs `aiohttp` (already provided by ComfyUI): `python3 tests/test_settings.py`.
+The settings-route tests are included; they need `aiohttp` (part of the dev group, and already provided by ComfyUI).
 
 To test a configured provider from its ComfyUI host, run `python3 tests/smoke.py your-model-id` with the same Python interpreter as ComfyUI. This sends one short test prompt to your endpoint.
 

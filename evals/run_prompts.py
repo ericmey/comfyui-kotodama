@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import time
@@ -45,7 +46,14 @@ def load_cases(path: Path) -> list[dict]:
     if not cases or len(ids) != len(set(ids)):
         raise ValueError("Cases must be nonempty and have unique IDs")
     for case in cases:
-        if not case["idea"].strip() or not case["must_show"]:
+        if (
+            not re.fullmatch(r"[a-z0-9-]+", case["id"])
+            or not isinstance(case["idea"], str)
+            or not case["idea"].strip()
+            or not isinstance(case["must_show"], list)
+            or not case["must_show"]
+            or any(not isinstance(detail, str) or not detail.strip() for detail in case["must_show"])
+        ):
             raise ValueError(f"Incomplete case: {case['id']}")
     return cases
 

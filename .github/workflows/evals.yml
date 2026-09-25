@@ -1,0 +1,27 @@
+name: Eval protocol
+
+on:
+  pull_request:
+    paths:
+      - 'evals/**'
+      - 'tests/test_eval_protocol.py'
+      - '.github/workflows/evals.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'evals/**'
+      - 'tests/test_eval_protocol.py'
+      - '.github/workflows/evals.yml'
+
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Check case schema and eval contract
+        run: |
+          python -c "from evals.run_prompts import load_cases, CASES; print(len(load_cases(CASES)), 'cases')"
+          python tests/test_eval_protocol.py

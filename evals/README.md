@@ -46,37 +46,67 @@ publishing a pinned-model claim. The runner does not print or save API keys.
 
 ## Prepare and render pairs
 
-Prepare a blinded queue after choosing and hashing a fixed API-format ComfyUI
-workflow and image checkpoint:
+Prepare a blinded queue after choosing a fixed Atelier checkpoint pack and
+hashing its recipe JSON and API-format ComfyUI workflow:
 
 ```bash
 python evals/prepare_pairs.py /tmp/kotodama-eval/prompts.json \
   --output-dir /tmp/kotodama-eval/pairs \
   --blind-seed 2112 --image-seed 51000 \
+  --width 1248 --height 832 \
   --checkpoint YOUR_CHECKPOINT_ID \
-  --checkpoint-sha256 YOUR_CHECKPOINT_SHA256 \
+  --pack-sha256 YOUR_PACK_RECIPE_SHA256 \
   --workflow-sha256 YOUR_WORKFLOW_SHA256
 ```
 
 `render_queue.jsonl` lists the exact prompt and seed for each arm. Render each
 row in ComfyUI and save the image to its listed `image_file`. The two rows for
-a case must use the same seed. The preparer records checkpoint/workflow hashes
-as **operator-declared**, not independently verified; preserve the actual files
-and check their hashes in the final run. Keep `answer_key.jsonl` from raters.
+a case must use the same seed. The preparer records pack recipe/workflow hashes
+as **operator-declared**, not independently verified. Those hashes do **not**
+bind the model weight bytes; state that limit beside any result unless weight
+hashes are separately collected. Preserve the recipe/workflow files and check
+their hashes in the final run. Keep `answer_key.jsonl` from raters.
 
-Give raters only `blind_cases.jsonl`, `ratings.csv`, and the numbered images.
+Place the recipe and API workflow in the pair directory as `pack_recipe.json`
+and `workflow.json`. Verify every PNG's embedded graph before rating. The
+default node IDs below match the included Atelier Krea2 graph; pass alternate
+IDs when using another ComfyUI workflow:
+
+```bash
+python evals/verify_images.py --pairs-dir /tmp/kotodama-eval/pairs \
+  --output /tmp/kotodama-eval/pairs/image-verification.json
+```
+
+This checks every positive prompt, seed, dimension, loader, sampler parameter,
+and absence of LoRAs against the queue and recipe. It still cannot verify the
+model weight bytes without separate hashes from the image host.
+
+ComfyUI PNGs contain the full prompt in metadata. Use the blind exporter to
+remove that metadata from rater copies while keeping the verified originals:
+
+```bash
+python evals/export_blind.py --pairs-dir /tmp/kotodama-eval/pairs \
+  --output-dir /tmp/kotodama-eval/rater-1
+```
+
+Give raters only that exported directory: `blind_gallery.html`,
+`blind_cases.jsonl`, `ratings.csv`, and the numbered images. Do not share the
+answer key, render queue, or original PNGs until their ratings are frozen.
 They fill every `intent_winner`, `quality_winner`, `details_a`, and `details_b`
 cell. If possible, collect two independent rating sheets and show disagreement.
-The scorer currently handles one sheet at a time, so run it separately for
-each rater and report both; do not collapse disagreements into a single score.
+The scorer handles one sheet at a time; pass each completed rater sheet with
+`--ratings` against the same verified originals. Report both scores and
+disagreements rather than collapsing them into one number.
 
 ```bash
 python evals/score.py --pairs-dir /tmp/kotodama-eval/pairs \
+  --ratings /tmp/kotodama-eval/rater-1/ratings.csv \
   --output /tmp/kotodama-eval/rater-1-report.json
 ```
 
-The scorer rejects incomplete ratings or missing images. The report includes
+The scorer rejects incomplete ratings, missing images, or any image whose hash
+differs from `image-verification.json`. The report includes
 SHA-256 for each rated image. Publish the raw prompt run, render queue,
-workflow and checkpoint hashes, images, rating sheets, answer key, scorer
+workflow and pack recipe hashes, images, rating sheets, answer key, scorer
 output, and any failures, with a description of the endpoint hardware and
 runtime. Keep private endpoint URLs and credentials out of public artifacts.

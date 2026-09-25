@@ -6,6 +6,7 @@ import argparse
 import csv
 import hashlib
 import json
+import struct
 from collections import Counter
 from pathlib import Path
 
@@ -52,16 +53,30 @@ def score(key_rows: list[dict], ratings: list[dict], case_rows: list[dict]) -> d
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pairs-dir", type=Path, required=True)
+    parser.add_argument("--ratings", type=Path, help="Completed blind rating CSV")
+    parser.add_argument(
+        "--verification",
+        type=Path,
+        help="Image verification JSON (defaults to pairs-dir/image-verification.json)",
+    )
     parser.add_argument("--cases", type=Path, default=Path(__file__).with_name("cases.jsonl"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     if args.output.exists():
         parser.error("Output exists; preserve prior result")
+    verification_path = args.verification or args.pairs_dir / "image-verification.json"
+    verification = json.loads(verification_path.read_text())
+    if verification.get("verified_images") != len(verification.get("images", [])):
+        parser.error("Malformed image verification receipt")
+    verified_hashes = {row["image_file"]: row["sha256"] for row in verification["images"]}
     key = [json.loads(line) for line in (args.pairs_dir / "answer_key.jsonl").read_text().splitlines()]
-    with (args.pairs_dir / "ratings.csv").open(newline="") as file:
+    ratings_path = args.ratings or args.pairs_dir / "ratings.csv"
+    with ratings_path.open(newline="") as file:
         ratings = list(csv.DictReader(file))
     cases = [json.loads(line) for line in args.cases.read_text().splitlines()]
     image_hashes = {}
+    render_manifest = json.loads((args.pairs_dir / "render_manifest.json").read_text())
+    expected_size = (render_manifest["width"], render_manifest["height"])
     for row in ratings:
         for field in ("image_a", "image_b"):
             arm = "A" if field == "image_a" else "B"
@@ -71,13 +86,25 @@ def main() -> None:
             image = args.pairs_dir / row[field]
             if not image.is_file():
                 parser.error(f"Rated image is missing: {image}")
-            if not image.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"):
+            raw = image.read_bytes()
+            if not raw.startswith(b"\x89PNG\r\n\x1a\n") or raw[12:16] != b"IHDR":
                 parser.error(f"Rated image is not a PNG: {image}")
-            image_hashes[str(image.relative_to(args.pairs_dir))] = hashlib.sha256(
-                image.read_bytes()
-            ).hexdigest()
+            if struct.unpack(">II", raw[16:24]) != expected_size:
+                parser.error(f"Rated image has wrong dimensions: {image}")
+            image_hashes[str(image.relative_to(args.pairs_dir))] = hashlib.sha256(raw).hexdigest()
+        if image_hashes[row["image_a"]] == image_hashes[row["image_b"]] and (
+            row["intent_winner"].strip().upper() != "TIE"
+            or row["quality_winner"].strip().upper() != "TIE"
+            or row["details_a"] != row["details_b"]
+        ):
+            parser.error(f"{row['id']}: identical image files require tie ratings")
     result = score(key, ratings, cases)
+    if image_hashes != verified_hashes:
+        parser.error("Rated image hashes differ from verification receipt")
     result["image_sha256"] = image_hashes
+    result["image_verification_sha256"] = hashlib.sha256(
+        verification_path.read_bytes()
+    ).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 

@@ -102,9 +102,7 @@ def main() -> None:
     if image_hashes != verified_hashes:
         parser.error("Rated image hashes differ from verification receipt")
     result["image_sha256"] = image_hashes
-    result["image_verification_sha256"] = hashlib.sha256(
-        verification_path.read_bytes()
-    ).hexdigest()
+    result["image_verification_sha256"] = hashlib.sha256(verification_path.read_bytes()).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 

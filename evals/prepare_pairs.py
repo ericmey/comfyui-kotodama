@@ -17,11 +17,9 @@ def prepare(run: dict, seed: int, image_seed: int) -> tuple[list[dict], list[dic
     successful = [row for row in run["rows"] if row["status"] == "ok"]
     # Balance presentation side so a preference for image A cannot masquerade
     # as an enhancer effect. The final odd case is assigned by the blind seed.
-    first_arms = ["raw"] * (len(successful) // 2) + ["enhanced"] * (
-        len(successful) - len(successful) // 2
-    )
+    first_arms = ["raw"] * (len(successful) // 2) + ["enhanced"] * (len(successful) - len(successful) // 2)
     rng.shuffle(first_arms)
-    first_by_id = {row["id"]: arm for row, arm in zip(successful, first_arms)}
+    first_by_id = {row["id"]: arm for row, arm in zip(successful, first_arms, strict=True)}
     for index, row in enumerate(run["rows"]):
         if row["status"] != "ok":
             continue
@@ -29,7 +27,7 @@ def prepare(run: dict, seed: int, image_seed: int) -> tuple[list[dict], list[dic
         if first_by_id[row["id"]] == "enhanced":
             arms.reverse()
         mapping = {}
-        for label, (arm, prompt) in zip(("A", "B"), arms):
+        for label, (arm, prompt) in zip(("A", "B"), arms, strict=True):
             mapping[label] = arm
             queue.append(
                 {
@@ -90,16 +88,16 @@ def main() -> None:
     (args.output_dir / "render_queue.jsonl").write_text(
         "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in queue)
     )
-    (args.output_dir / "answer_key.jsonl").write_text(
-        "".join(json.dumps(row) + "\n" for row in key)
-    )
+    (args.output_dir / "answer_key.jsonl").write_text("".join(json.dumps(row) + "\n" for row in key))
     (args.output_dir / "blind_cases.jsonl").write_text(
         "".join(
             json.dumps(
                 {"id": row["id"], "idea": row["idea"], "must_show": row["must_show"]},
                 ensure_ascii=False,
-            ) + "\n"
-            for row in run["rows"] if row["status"] == "ok"
+            )
+            + "\n"
+            for row in run["rows"]
+            if row["status"] == "ok"
         )
     )
     cards = []
@@ -109,24 +107,23 @@ def main() -> None:
         id_ = html.escape(row["id"])
         details = "".join(f"<li>{html.escape(detail)}</li>" for detail in row["must_show"])
         cards.append(
-            f'<section><h2>{id_}</h2><p>{html.escape(row["idea"])}</p>'
+            f"<section><h2>{id_}</h2><p>{html.escape(row['idea'])}</p>"
             f'<ul>{details}</ul><div class="pair">'
             f'<figure><img src="images/{id_}-A.png" alt="{id_} image A"><figcaption>A</figcaption></figure>'
             f'<figure><img src="images/{id_}-B.png" alt="{id_} image B"><figcaption>B</figcaption></figure>'
-            '</div></section>'
+            "</div></section>"
         )
     (args.output_dir / "blind_gallery.html").write_text(
         '<!doctype html><html lang="en"><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        '<title>Kotodama blind image pairs</title><style>'
-        'body{font:16px system-ui;max-width:1400px;margin:auto;padding:1rem;background:#16191c;color:#f5f5f5}'
-        'section{border-top:1px solid #777;padding:1.5rem 0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem}'
-        'figure{margin:0}img{width:100%;height:auto}figcaption{text-align:center;font-size:1.3rem}'
-        '@media(max-width:700px){.pair{grid-template-columns:1fr}}</style>'
-        '<h1>Kotodama blind image pairs</h1>'
-        '<p>For each case, record intent winner, quality winner, and visible detail counts in ratings.csv. '
-        'A and B identities are hidden here.</p>'
-        + ''.join(cards) + '</html>\n'
+        "<title>Kotodama blind image pairs</title><style>"
+        "body{font:16px system-ui;max-width:1400px;margin:auto;padding:1rem;background:#16191c;color:#f5f5f5}"
+        "section{border-top:1px solid #777;padding:1.5rem 0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem}"
+        "figure{margin:0}img{width:100%;height:auto}figcaption{text-align:center;font-size:1.3rem}"
+        "@media(max-width:700px){.pair{grid-template-columns:1fr}}</style>"
+        "<h1>Kotodama blind image pairs</h1>"
+        "<p>For each case, record intent winner, quality winner, and visible detail counts in ratings.csv. "
+        "A and B identities are hidden here.</p>" + "".join(cards) + "</html>\n"
     )
     (args.output_dir / "render_manifest.json").write_text(
         json.dumps(
@@ -146,7 +143,8 @@ def main() -> None:
                 "note": "Render queue only; no image generation or rating has occurred",
             },
             indent=2,
-        ) + "\n"
+        )
+        + "\n"
     )
     with (args.output_dir / "ratings.csv").open("w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=list(rating_rows[0]))

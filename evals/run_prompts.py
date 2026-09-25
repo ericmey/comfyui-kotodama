@@ -27,15 +27,11 @@ def sha256(path: Path) -> str:
 
 
 def git_head() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
-    ).strip()
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
 def require_clean_tree() -> None:
-    state = subprocess.check_output(
-        ["git", "status", "--porcelain", "--untracked-files=all"], cwd=ROOT, text=True
-    )
+    state = subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=all"], cwd=ROOT, text=True)
     if state.strip():
         raise RuntimeError("Commit the eval and run from a clean tree before collecting evidence")
 

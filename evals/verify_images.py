@@ -32,15 +32,15 @@ def embedded_graph(raw: bytes) -> dict:
 
 
 def verify_one(row: dict, graph: dict, pack: dict, manifest: dict, nodes: dict) -> None:
-    inputs = lambda label: graph[nodes[label]]["inputs"]
+    def inputs(label: str) -> dict:
+        return graph[nodes[label]]["inputs"]
+
     if inputs("prompt")["text"] != row["prompt"]:
         raise ValueError("Embedded positive prompt differs from frozen queue")
     if int(inputs("sampler")["seed"]) != row["image_seed"]:
         raise ValueError("Embedded image seed differs from frozen queue")
     latent = inputs("latent")
-    if (latent["width"], latent["height"], latent["batch_size"]) != (
-        manifest["width"], manifest["height"], 1
-    ):
+    if (latent["width"], latent["height"], latent["batch_size"]) != (manifest["width"], manifest["height"], 1):
         raise ValueError("Embedded dimensions or batch size differ")
     params = pack["parameters"]
     expected = {
@@ -90,9 +90,13 @@ def main() -> None:
     if pack["id"] != manifest["checkpoint"]:
         parser.error("Pack ID differs from manifest")
     nodes = {
-        "prompt": args.prompt_node, "sampler": args.sampler_node,
-        "latent": args.latent_node, "unet": args.unet_node,
-        "clip": args.clip_node, "vae": args.vae_node, "lora": args.lora_node,
+        "prompt": args.prompt_node,
+        "sampler": args.sampler_node,
+        "latent": args.latent_node,
+        "unet": args.unet_node,
+        "clip": args.clip_node,
+        "vae": args.vae_node,
+        "lora": args.lora_node,
     }
     queue = [json.loads(line) for line in (root / "render_queue.jsonl").read_text().splitlines()]
     if len(queue) == 0 or len(queue) != len({(row["id"], row["arm"]) for row in queue}):

@@ -46,7 +46,10 @@ def score(key_rows: list[dict], ratings: list[dict], case_rows: list[dict]) -> d
         "quality_wins": dict(totals["quality"]),
         "details_present": totals["detail_count"],
         "details_possible_per_arm": totals["detail_possible"],
-        "limits": "Authored cases and human ratings; no population or causal claim beyond these paired renders.",
+        "limits": (
+            "Authored cases and blinded visual ratings; no population claim beyond "
+            "these paired renders. State who or what performed the ratings."
+        ),
     }
 
 

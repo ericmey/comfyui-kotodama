@@ -96,7 +96,9 @@ They fill every `intent_winner`, `quality_winner`, `details_a`, and `details_b`
 cell. If possible, collect two independent rating sheets and show disagreement.
 The scorer handles one sheet at a time; pass each completed rater sheet with
 `--ratings` against the same verified originals. Report both scores and
-disagreements rather than collapsing them into one number.
+disagreements rather than collapsing them into one number. State whether the
+raters were people, AI systems, or a mix; do not present agent ratings as
+human preference data.
 
 ```bash
 python evals/score.py --pairs-dir /tmp/kotodama-eval/pairs \

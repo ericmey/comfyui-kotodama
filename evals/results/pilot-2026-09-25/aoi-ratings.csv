@@ -1,0 +1,13 @@
+id,image_a,image_b,intent_winner,quality_winner,details_a,details_b,notes
+sign-01,images/sign-01-A.png,images/sign-01-B.png,A,A,4,3,B shows two customers (umbrella + seated); B has large garbled signage | rater Aoi: quality judgement uncalibrated
+count-02,images/count-02-A.png,images/count-02-B.png,A,A,4,3,"B is photographic, not ink wash | rater Aoi: quality judgement uncalibrated"
+action-03,images/action-03-A.png,images/action-03-B.png,A,B,4,2,"A: wrench mid-fall, hand reaching; B already holding it, eye-level angle | rater Aoi: quality judgement uncalibrated"
+spatial-04,images/spatial-04-A.png,images/spatial-04-B.png,A,A,4,3,"B boat sits in front of the opening, not under the bridge | rater Aoi: quality judgement uncalibrated"
+material-05,images/material-05-A.png,images/material-05-B.png,A,B,4,3,"A has a physically odd notch in the rim; B light is hard, not soft | rater Aoi: quality judgement uncalibrated"
+negative-06,images/negative-06-A.png,images/negative-06-B.png,tie,tie,4,4,"both empty, no train, symmetrical | rater Aoi: quality judgement uncalibrated"
+motion-07,images/motion-07-A.png,images/motion-07-B.png,A,tie,4,3,B has already caught the scarf rather than reaching for it | rater Aoi: quality judgement uncalibrated
+weather-08,images/weather-08-A.png,images/weather-08-B.png,B,B,3,4,"A setting reads snowy rock, desert unclear; B shows sand dunes | rater Aoi: quality judgement uncalibrated"
+typography-09,images/typography-09-A.png,images/typography-09-B.png,tie,A,4,4,B trumpet collides with the letters; both only BLUE HOUR | rater Aoi: quality judgement uncalibrated
+relation-10,images/relation-10-A.png,images/relation-10-B.png,B,tie,3,3,neither shows a clear cat reflection; A has two goldfish vs idea's one | rater Aoi: quality judgement uncalibrated
+architecture-11,images/architecture-11-A.png,images/architecture-11-B.png,A,tie,4,3,B light patch is not rectangular | rater Aoi: quality judgement uncalibrated
+character-12,images/character-12-A.png,images/character-12-B.png,B,tie,4,4,B matches cinematic wide framing; A is a medium shot | rater Aoi: quality judgement uncalibrated

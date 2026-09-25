@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "krea2-moody-premium-nvfp4",
+  "model": "krea2",
+  "types": [
+    "t2i"
+  ],
+  "display_name": "Krea 2 Moody Mix Premium (NVFP4)",
+  "parameters": {
+    "model.unet_name": "moodyKrea2Mix_premium_nvfp4.safetensors",
+    "model.weight_dtype": "default",
+    "clip.clip_name": "qwen3_vl_4b_nvfp4_full.safetensors",
+    "clip.type": "krea2",
+    "clip.device": "default",
+    "vae.vae_name": "qwen_image_vae.safetensors",
+    "sampler.steps": 8,
+    "sampler.cfg": 1.0,
+    "sampler.name": "euler_ancestral",
+    "sampler.scheduler": "simple",
+    "sampler.denoise": 1.0,
+    "width": 1024,
+    "height": 1024
+  },
+  "loras": []
+}

@@ -1,0 +1,12 @@
+{"id": "sign-01", "A": "enhanced", "B": "raw"}
+{"id": "count-02", "A": "enhanced", "B": "raw"}
+{"id": "action-03", "A": "enhanced", "B": "raw"}
+{"id": "spatial-04", "A": "raw", "B": "enhanced"}
+{"id": "material-05", "A": "raw", "B": "enhanced"}
+{"id": "negative-06", "A": "raw", "B": "enhanced"}
+{"id": "motion-07", "A": "enhanced", "B": "raw"}
+{"id": "weather-08", "A": "raw", "B": "enhanced"}
+{"id": "typography-09", "A": "enhanced", "B": "raw"}
+{"id": "relation-10", "A": "raw", "B": "enhanced"}
+{"id": "architecture-11", "A": "enhanced", "B": "raw"}
+{"id": "character-12", "A": "raw", "B": "enhanced"}

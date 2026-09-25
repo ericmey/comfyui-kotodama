@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "prompt_run": "prompt_run.public.json",
+  "checkpoint": "krea2-moody-premium-nvfp4",
+  "pack_recipe_sha256_declared": "96a36f7dd1308ff9b66db077ec03537ff388479288a2169b79b242b726d6ef08",
+  "workflow_sha256_declared": "dd785ee878090d94ff0a23d260d5df6371302e3e70c08cab03f0000801d08225",
+  "hashes_verified_by_runner": false,
+  "model_weights_hash_available": false,
+  "image_seed_base": 51000,
+  "width": 1248,
+  "height": 832,
+  "paired_seed_rule": "same case ID uses the same seed for A and B",
+  "blind_seed": 2112,
+  "note": "Render queue only; no image generation or rating has occurred",
+  "public_redaction": {
+    "source_sha256": "93999705ea00c8b156ecc2026b11bc733c81934b44b4718b00acd4aa4fa57090",
+    "fields_changed": [
+      "prompt_run"
+    ],
+    "reason": "source path was private and absolute; public package uses the artifact-relative redacted prompt receipt"
+  }
+}

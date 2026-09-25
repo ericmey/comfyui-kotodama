@@ -47,6 +47,9 @@ Click **Save** (it asks you to confirm an endpoint change), then **Test connecti
 
 > **Anyone who can use your ComfyUI page can change these settings.** ComfyUI has no login by default, so keep it private. The key is never sent back to the browser.
 
+- **Behind an HTTPS reverse proxy?** The panel only accepts saves from ComfyUI's own origin. Set `KOTODAMA_ALLOWED_ORIGINS` (comma-separated, exact origins such as `https://comfy.example.com`) in the environment or the `.env` file, otherwise saving is refused with `cross_origin`.
+- **Key set in the environment or the node folder's `.env`?** The panel won't change the endpoint or clear the key (`key_outside_panel`), so a key can never be sent to a new server behind your back. Change both where the key lives.
+
 **Alternative: environment variables or a `.env` file.** These still work and **take precedence** over the panel (the panel says when they do). Copy `.env.example` to `.env` in this node folder:
 
 ```dotenv
@@ -61,7 +64,9 @@ Use HTTPS for a remote service. Existing installs using `LITELLM_BASE_URL` and `
 
 ## Try the example
 
-Open `examples/kotodama-preview-api.json` in ComfyUI (**Workflow → Open**, or drag the file onto the canvas). It is two nodes: Kotodama feeding a **Preview Any** node that shows the generated prompt. Pick a model from the node's model menu (the file ships with a placeholder), then **Queue**. No image model is needed to see what Kotodama writes. To render it, connect `prompt` to `CLIPTextEncode.text` in your own workflow.
+Open `examples/kotodama-preview-api.json` in ComfyUI (**Workflow → Open**, or drag the file onto the canvas). It is two nodes: Kotodama feeding a **Preview Any** node that shows the generated prompt. Pick a model from the node's model menu (the file ships with a placeholder), then **Queue**.
+
+![The example workflow after one run: Kotodama feeding Preview as Text](docs/images/canvas-example.png) No image model is needed to see what Kotodama writes. To render it, connect `prompt` to `CLIPTextEncode.text` in your own workflow.
 
 ## Use
 

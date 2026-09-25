@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import hmac
 import re
+import secrets
 
 from . import client, prompts
 
 MAX_SEED = 0xFFFFFFFFFFFFFFFF
+_CACHE_KEY_SALT = secrets.token_bytes(32)
 
 # Models routinely wrap their answer in a fence or in quotes - the krea2
 # example output is itself shown quoted, so the model copies that. Neither
@@ -158,6 +161,12 @@ class KotodamaPromptEnhancer:
             bool(passthrough_on_empty),
             prompts.fingerprint(system_prompt),
             client.config.safe_base_url(),
+            # Include the effective credential without exposing it in ComfyUI's
+            # cache identity. A per-process HMAC key also prevents offline
+            # guesses against a persisted cache value.
+            hmac.digest(
+                _CACHE_KEY_SALT, client.config.api_key().encode("utf-8"), "sha256"
+            ).hex(),
         )
 
     def enhance(

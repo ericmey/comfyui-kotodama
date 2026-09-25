@@ -109,6 +109,19 @@ with patch("kotodama.enhancer.client.config.safe_base_url", return_value="https:
         KotodamaPromptEnhancer.IS_CHANGED(**base) != ref,
     ))
 
+with patch("kotodama.enhancer.client.config.api_key", return_value="test-key-a"):
+    first_key = KotodamaPromptEnhancer.IS_CHANGED(**base)
+with patch("kotodama.enhancer.client.config.api_key", return_value="test-key-b"):
+    second_key = KotodamaPromptEnhancer.IS_CHANGED(**base)
+results.append(check_bool(
+    "changing API key invalidates cached output",
+    first_key != second_key,
+))
+results.append(check_bool(
+    "cache identity does not expose the API key",
+    "test-key-a" not in repr(first_key),
+))
+
 _cache_probe = prompts.PROMPT_DIR / "_cache_probe.md"
 try:
     _cache_probe.write_text("first version", encoding="utf-8")

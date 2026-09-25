@@ -1,22 +1,13 @@
 """Client + config behaviour that does not need a live proxy."""
 
 import os
-import sys
 import urllib.error
-from pathlib import Path
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+import pytest
 
-from kotodama import client, config  # noqa: E402
-from kotodama.client import LiteLLMError  # noqa: E402
-
-results = []
-
-
-def check(label, ok):
-    print(f"[{'PASS' if ok else 'FAIL'}] {label}")
-    results.append(ok)
+from kotodama import client, config
+from kotodama.client import LiteLLMError
 
 
 class _FakeResp:
@@ -34,241 +25,157 @@ class _FakeResp:
 
 
 def _ok_choice(content="ok", finish_reason="stop"):
-    return {
-        "choices": [
-            {"message": {"content": content}, "finish_reason": finish_reason}
-        ]
-    }
+    return {"choices": [{"message": {"content": content}, "finish_reason": finish_reason}]}
+
+
+@pytest.fixture(autouse=True)
+def _fresh_model_cache():
+    client._MODEL_CACHE = None
+    yield
+    client._MODEL_CACHE = None
+
+
+def _raise(exc):
+    def _fn(*_a, **_k):
+        raise exc
+
+    return _fn
 
 
 # --- seed ---
 
-captured = {}
+
+def test_seed_is_sent_including_zero() -> None:
+    captured = {}
+
+    def capture(path, payload, timeout):
+        captured["payload"] = payload
+        return _ok_choice("rewritten")
+
+    with patch.object(client, "_request", capture):
+        text = client.complete("example/main", "sys", "user", 0.8, 1024, 0)
+    assert captured["payload"].get("seed") == 0  # seed 0 is sent to the API
+    assert text == "rewritten"
+
+    with patch.object(client, "_request", capture):
+        client.complete("example/main", "sys", "user", 0.8, 1024, 7)
+    assert captured["payload"].get("seed") == 7
 
 
-def _capture_complete(path, payload, timeout):
-    captured["payload"] = payload
-    return _ok_choice("rewritten")
+def test_length_finish_reason_raises() -> None:
+    with patch.object(client, "_request", lambda *a, **k: _ok_choice("half a prompt", "length")):
+        with pytest.raises(LiteLLMError, match="max_tokens"):
+            client.complete("example/main", "sys", "user", 0.8, 1024, 1)
 
 
-with patch.object(client, "_request", _capture_complete):
-    text = client.complete("example/main", "sys", "user", 0.8, 1024, 0)
-
-check("seed 0 is sent to the API", captured["payload"].get("seed") == 0)
-check("seed 0 completion returns content", text == "rewritten")
-
-with patch.object(client, "_request", _capture_complete):
-    client.complete("example/main", "sys", "user", 0.8, 1024, 7)
-check("nonzero seed is sent", captured["payload"].get("seed") == 7)
-
-
-# --- finish_reason length ---
-
-try:
-    with patch.object(
-        client, "_request", lambda *a, **k: _ok_choice("half a prompt", "length")
-    ):
-        client.complete("example/main", "sys", "user", 0.8, 1024, 1)
-    check("length finish_reason raises", False)
-except LiteLLMError as exc:
-    check("length finish_reason raises", "max_tokens" in str(exc))
-
-
-# --- malformed JSON / HTML body ---
-
-try:
+def test_html_body_becomes_litellm_error() -> None:
     with patch.object(config, "base_url", return_value="https://example.invalid"):
-        with patch.object(
-            client,
-            "urlopen",
-            lambda *a, **k: _FakeResp(b"<html>nope</html>"),
-        ):
-            client._request("/v1/chat/completions", {"x": 1}, timeout=1.0)
-    check("HTML body becomes LiteLLMError", False)
-except LiteLLMError as exc:
-    check("HTML body becomes LiteLLMError", "non-JSON" in str(exc))
+        with patch.object(client, "urlopen", lambda *a, **k: _FakeResp(b"<html>nope</html>")):
+            with pytest.raises(LiteLLMError, match="non-JSON"):
+                client._request("/v1/chat/completions", {"x": 1}, timeout=1.0)
 
 
-# --- urllib socket.timeout surfaces as the timeout hint, not the unreachable hint ---
-
-import socket  # noqa: E402
-
-try:
+def test_socket_timeout_surfaces_as_timeout_hint() -> None:
+    err = urllib.error.URLError(TimeoutError("read timed out"))
     with patch.object(config, "base_url", return_value="https://example.invalid"):
-        with patch.object(
-            client,
-            "urlopen",
-            lambda *a, **k: (_ for _ in ()).throw(
-                urllib.error.URLError(socket.timeout("read timed out"))
-            ),
-        ):
-            client._request("/v1/chat/completions", {"x": 1}, timeout=1.0)
-    check("urllib socket.timeout surfaces as timeout hint", False)
-except LiteLLMError as exc:
-    msg = str(exc)
-    check(
-        "urllib socket.timeout surfaces as timeout hint",
-        "timed out" in msg and "raise" in msg and "KOTODAMA_TIMEOUT" in msg,
-    )
+        with patch.object(client, "urlopen", _raise(err)):
+            with pytest.raises(LiteLLMError) as exc:
+                client._request("/v1/chat/completions", {"x": 1}, timeout=1.0)
+    msg = str(exc.value)
+    assert "timed out" in msg and "raise" in msg and "KOTODAMA_TIMEOUT" in msg
 
 
-# --- plain urllib URLError (non-timeout) keeps the unreachable hint ---
-
-try:
+def test_plain_urlerror_keeps_the_unreachable_hint() -> None:
     with patch.object(config, "base_url", return_value="https://example.invalid"):
-        with patch.object(
-            client,
-            "urlopen",
-            lambda *a, **k: (_ for _ in ()).throw(
-                urllib.error.URLError("name resolution failed")
-            ),
-        ):
-            client._request("/v1/chat/completions", {"x": 1}, timeout=1.0)
-    check("plain URLError keeps the unreachable hint", False)
-except LiteLLMError as exc:
-    msg = str(exc)
-    check(
-        "plain URLError keeps the unreachable hint",
-        "Could not reach LiteLLM" in msg and "timed out" not in msg,
-    )
+        with patch.object(client, "urlopen", _raise(urllib.error.URLError("name resolution failed"))):
+            with pytest.raises(LiteLLMError) as exc:
+                client._request("/v1/chat/completions", {"x": 1}, timeout=1.0)
+    msg = str(exc.value)
+    assert "Could not reach LiteLLM" in msg and "timed out" not in msg
 
 
-# --- config: KOTODAMA_TIMEOUT floored at 1.0s ---
-
-_saved_timeout = os.environ.get("KOTODAMA_TIMEOUT")
-try:
-    for bad in ("0", "0.0", "-5"):
-        os.environ["KOTODAMA_TIMEOUT"] = bad
-        check(
-            f"KOTODAMA_TIMEOUT={bad} is floored at 1.0",
-            config.request_timeout() == 1.0,
-        )
-    os.environ["KOTODAMA_TIMEOUT"] = "0.5"
-    check(
-        "KOTODAMA_TIMEOUT=0.5 is floored at 1.0",
-        config.request_timeout() == 1.0,
-    )
-    os.environ["KOTODAMA_TIMEOUT"] = "120"
-    check(
-        "KOTODAMA_TIMEOUT=120 is respected",
-        config.request_timeout() == 120.0,
-    )
-    os.environ["KOTODAMA_TIMEOUT"] = "not-a-number"
-    check(
-        "KOTODAMA_TIMEOUT=not-a-number falls back to 300",
-        config.request_timeout() == 300.0,
-    )
-finally:
-    if _saved_timeout is None:
-        os.environ.pop("KOTODAMA_TIMEOUT", None)
-    else:
-        os.environ["KOTODAMA_TIMEOUT"] = _saved_timeout
-
-
-# --- list_models negative cache ---
-
-client._MODEL_CACHE = None
-calls = {"n": 0}
-
-
-def _down(*a, **k):
-    calls["n"] += 1
-    raise LiteLLMError("proxy down")
-
-
-with patch.object(config, "base_url", return_value="https://example.invalid"):
-    with patch.object(client, "_request", _down):
-        models1, live1 = client.list_models()
-        models2, live2 = client.list_models()
-
-check("failed models fetch hits the network once", calls["n"] == 1)
-check("failed models fetch is not live", live1 is False and live2 is False)
-check("failed models fetch serves fallback", len(models1) > 0 and models1 == models2)
-
-client._MODEL_CACHE = None
-with patch.object(config, "base_url", return_value="https://example.invalid"):
-    with patch.object(
-        client, "_request", lambda *a, **k: {"data": None}
-    ):
-        _, live_null = client.list_models()
-check("null models data is treated as a miss", live_null is False)
-
-client._MODEL_CACHE = None
-with patch.object(config, "base_url", return_value="https://example.invalid"):
-    with patch.object(
-        client, "_request", lambda *a, **k: {"data": [{"id": "example/main"}]}
-    ):
-        models_ok, live_ok = client.list_models()
-check("successful models fetch is live", live_ok is True and "example/main" in models_ok)
-
-
-# --- an unconfigured fresh install never contacts a house endpoint ---
-
-client._MODEL_CACHE = None
-with patch.object(config, "base_url", return_value=""):
-    with patch.object(client, "_request", side_effect=AssertionError("network attempted")):
-        unconfigured_models, unconfigured_live = client.list_models()
-check(
-    "unconfigured model menu is non-live",
-    unconfigured_models == [config.UNCONFIGURED_MODEL] and not unconfigured_live,
+@pytest.mark.parametrize(
+    ("value", "want"),
+    [("0", 1.0), ("0.0", 1.0), ("-5", 1.0), ("0.5", 1.0), ("120", 120.0), ("not-a-number", 300.0)],
 )
-try:
+def test_kotodama_timeout_is_floored_and_parsed(value: str, want: float) -> None:
+    with patch.dict(os.environ, {"KOTODAMA_TIMEOUT": value}):
+        assert config.request_timeout() == want
+
+
+# --- list_models ---
+
+
+def test_failed_models_fetch_is_negatively_cached() -> None:
+    calls = {"n": 0}
+
+    def down(*a, **k):
+        calls["n"] += 1
+        raise LiteLLMError("proxy down")
+
+    with patch.object(config, "base_url", return_value="https://example.invalid"):
+        with patch.object(client, "_request", down):
+            models1, live1 = client.list_models()
+            models2, live2 = client.list_models()
+    assert calls["n"] == 1  # the network is hit once
+    assert live1 is False and live2 is False
+    assert len(models1) > 0 and models1 == models2  # fallback served
+
+
+def test_null_models_data_is_treated_as_a_miss() -> None:
+    with patch.object(config, "base_url", return_value="https://example.invalid"):
+        with patch.object(client, "_request", lambda *a, **k: {"data": None}):
+            _, live = client.list_models()
+    assert live is False
+
+
+def test_successful_models_fetch_is_live() -> None:
+    with patch.object(config, "base_url", return_value="https://example.invalid"):
+        with patch.object(client, "_request", lambda *a, **k: {"data": [{"id": "example/main"}]}):
+            models, live = client.list_models()
+    assert live is True and "example/main" in models
+
+
+def test_unconfigured_install_never_contacts_an_endpoint() -> None:
+    with patch.object(config, "base_url", return_value=""):
+        with patch.object(client, "_request", side_effect=AssertionError("network attempted")):
+            models, live = client.list_models()
+    assert models == [config.UNCONFIGURED_MODEL] and not live
     with patch.object(config, "base_url", return_value=""):
         with patch.object(client, "urlopen", side_effect=AssertionError("network attempted")):
-            client._request("/v1/models", None, timeout=1.0)
-    check("unconfigured request fails before network", False)
-except LiteLLMError as exc:
-    check("unconfigured request fails before network", "KOTODAMA_BASE_URL" in str(exc))
+            with pytest.raises(LiteLLMError, match="KOTODAMA_BASE_URL"):
+                client._request("/v1/models", None, timeout=1.0)
 
 
-# --- new names take precedence, old names remain compatible ---
-
-with patch.dict(os.environ, {"KOTODAMA_BASE_URL": "https://new.example", "LITELLM_BASE_URL": "https://old.example"}):
-    check("new endpoint name wins", config.base_url() == "https://new.example")
-with patch.dict(os.environ, {"LITELLM_BASE_URL": "https://old.example"}):
-    with patch.object(config, "_read_env_file", return_value={}):
-        check("legacy endpoint name still works", config.base_url() == "https://old.example")
-with patch.dict(os.environ, {"KOTODAMA_API_KEY": "new-key", "LITELLM_API_KEY": "old-key"}):
-    check("new API key name wins", config.api_key() == "new-key")
+def test_model_cache_is_endpoint_scoped() -> None:
+    # A settings change must not keep a stale menu.
+    with patch.object(config, "base_url", side_effect=["https://one.example", "https://two.example"]):
+        with patch.object(client, "_request", side_effect=[{"data": [{"id": "one"}]}, {"data": [{"id": "two"}]}]):
+            first, _ = client.list_models()
+            second, _ = client.list_models()
+    assert first == ["one"] and second == ["two"]
 
 
-# Cache entries are scoped to endpoint, so a settings change cannot keep a stale menu.
-client._MODEL_CACHE = None
-with patch.object(config, "base_url", side_effect=["https://one.example", "https://two.example"]):
-    with patch.object(client, "_request", side_effect=[{"data": [{"id": "one"}]}, {"data": [{"id": "two"}]}]):
-        first, _ = client.list_models()
-        second, _ = client.list_models()
-check("model cache is endpoint-scoped", first == ["one"] and second == ["two"])
+# --- config names and precedence ---
 
 
-# --- config: empty process env falls through to .env ---
-
-_saved = os.environ.get("KOTODAMA_FALLBACK_MODELS")
-try:
-    os.environ["KOTODAMA_FALLBACK_MODELS"] = ""
-    with patch.object(
-        config, "_read_env_file", return_value={"KOTODAMA_FALLBACK_MODELS": "from-file"}
+def test_new_names_win_and_legacy_names_still_work() -> None:
+    with patch.dict(
+        os.environ, {"KOTODAMA_BASE_URL": "https://new.example", "LITELLM_BASE_URL": "https://old.example"}
     ):
-        check(
-            "empty process env falls through to .env",
-            config._lookup("KOTODAMA_FALLBACK_MODELS", "default") == "from-file",
-        )
-    os.environ.pop("KOTODAMA_FALLBACK_MODELS", None)
-    with patch.object(
-        config, "_read_env_file", return_value={"KOTODAMA_FALLBACK_MODELS": "from-file"}
-    ):
-        check(
-            "missing process env falls through to .env",
-            config._lookup("KOTODAMA_FALLBACK_MODELS", "default") == "from-file",
-        )
-finally:
-    if _saved is None:
-        os.environ.pop("KOTODAMA_FALLBACK_MODELS", None)
-    else:
-        os.environ["KOTODAMA_FALLBACK_MODELS"] = _saved
+        assert config.base_url() == "https://new.example"
+    with patch.dict(os.environ, {"LITELLM_BASE_URL": "https://old.example"}):
+        with patch.object(config, "_read_env_file", return_value={}):
+            assert config.base_url() == "https://old.example"
+    with patch.dict(os.environ, {"KOTODAMA_API_KEY": "new-key", "LITELLM_API_KEY": "old-key"}):
+        assert config.api_key() == "new-key"
 
-client._MODEL_CACHE = None
 
-print()
-print(f"{sum(results)}/{len(results)} passed")
-sys.exit(0 if all(results) else 1)
+@pytest.mark.parametrize("process_value", ["", None], ids=["empty process env", "missing process env"])
+def test_process_env_falls_through_to_dotenv(process_value: str | None) -> None:
+    env = {} if process_value is None else {"KOTODAMA_FALLBACK_MODELS": process_value}
+    with patch.dict(os.environ, env):
+        if process_value is None:
+            os.environ.pop("KOTODAMA_FALLBACK_MODELS", None)
+        with patch.object(config, "_read_env_file", return_value={"KOTODAMA_FALLBACK_MODELS": "from-file"}):
+            assert config._lookup("KOTODAMA_FALLBACK_MODELS", "default") == "from-file"

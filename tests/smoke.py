@@ -22,7 +22,7 @@ print("system_prompts:", spec["system_prompt"][0])
 print("models:", len(spec["model"][0]), "| tooltip:", spec["model"][1]["tooltip"])
 
 start = time.time()
-out, = KotodamaPromptEnhancer().enhance(
+(out,) = KotodamaPromptEnhancer().enhance(
     text="a person on a rooftop at night, city lights, raincoat",
     system_prompt="text-to-image",
     model=model,
@@ -34,7 +34,7 @@ out, = KotodamaPromptEnhancer().enhance(
 elapsed = time.time() - start
 
 print("model:", model)
-print("elapsed: %.1fs" % elapsed)
+print(f"elapsed: {elapsed:.1f}s")
 print("length:", len(out))
 print("clean:", not out.lstrip().lower().startswith(("here", "prompt:", '"', "```")))
 print("-----")

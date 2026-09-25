@@ -1,5 +1,6 @@
 """System-prompt library, checked against the real folder."""
 
+import re
 import sys
 from pathlib import Path
 
@@ -25,6 +26,38 @@ check("krea2 loads non-empty", len(body) > 1000)
 check("START banner stripped", "########START" not in body)
 check("END banner stripped", "##########END" not in body)
 check("instruction survives", "Output ONLY the prompt" in body)
+
+
+# Prompt-library contract: every discovered preset must (a) load non-empty,
+# (b) have its wrapper banners stripped, and (c) not affirm that the
+# text-only node can inspect a reference image. Each check is run once per
+# preset so a regression in any single file fails the suite by name.
+_NEGATIVE_QUALIFIERS = ("do not", "never", "must not", "should not", "no ")
+
+
+def _claims_unseen_image(body: str) -> bool:
+    """True if `body` makes an unnegated claim about inspecting a reference image."""
+    for sentence in re.split(r"(?<=[.!?])\s+", body):
+        s = sentence.lower()
+        if "reference image" not in s:
+            continue
+        if any(n in s for n in _NEGATIVE_QUALIFIERS):
+            continue
+        return True
+    return False
+
+
+for preset in prompts.available():
+    if preset.startswith("<"):
+        continue  # placeholder returned when the folder is empty / missing
+    body = prompts.load(preset)
+    check(f"{preset}: loads non-empty", bool(body.strip()))
+    check(f"{preset}: START banner stripped", "########START" not in body)
+    check(f"{preset}: END banner stripped", "##########END" not in body)
+    check(
+        f"{preset}: text-only contract (no claim to inspect a reference image)",
+        not _claims_unseen_image(body),
+    )
 
 
 # Forgiving banner strip: a rewrap or whitespace edit of the canonical banner

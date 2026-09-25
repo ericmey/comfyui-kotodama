@@ -1,0 +1,154 @@
+{
+  "101": {
+    "inputs": {
+      "unet_name": "moodyKrea2Mix_premium_nvfp4.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Diffusion model"
+    }
+  },
+  "102": {
+    "inputs": {
+      "clip_name": "qwen3_vl_4b_nvfp4_full.safetensors",
+      "type": "krea2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "CLIP"
+    }
+  },
+  "103": {
+    "inputs": {
+      "vae_name": "qwen_image_vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "VAE"
+    }
+  },
+  "104": {
+    "inputs": {
+      "lora_01": "None",
+      "strength_01": 0,
+      "lora_02": "None",
+      "strength_02": 0,
+      "lora_03": "None",
+      "strength_03": 0,
+      "lora_04": "None",
+      "strength_04": 0,
+      "model": [
+        "101",
+        0
+      ],
+      "clip": [
+        "102",
+        0
+      ]
+    },
+    "class_type": "Lora Loader Stack (rgthree)",
+    "_meta": {
+      "title": "LoRA stack"
+    }
+  },
+  "201": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "104",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Positive prompt"
+    }
+  },
+  "202": {
+    "inputs": {
+      "conditioning": [
+        "201",
+        0
+      ]
+    },
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "Negative (zeroed)"
+    }
+  },
+  "301": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Latent"
+    }
+  },
+  "302": {
+    "inputs": {
+      "seed": 777,
+      "steps": 8,
+      "cfg": 1,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "104",
+        0
+      ],
+      "positive": [
+        "201",
+        0
+      ],
+      "negative": [
+        "202",
+        0
+      ],
+      "latent_image": [
+        "301",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "Sampler"
+    }
+  },
+  "303": {
+    "inputs": {
+      "samples": [
+        "302",
+        0
+      ],
+      "vae": [
+        "103",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE decode"
+    }
+  },
+  "901": {
+    "inputs": {
+      "character": "",
+      "description": "",
+      "album_id": "",
+      "filename_prefix": "atelier",
+      "images": [
+        "303",
+        0
+      ]
+    },
+    "class_type": "SaveToImmich",
+    "_meta": {
+      "title": "Archive to Immich"
+    }
+  }
+}

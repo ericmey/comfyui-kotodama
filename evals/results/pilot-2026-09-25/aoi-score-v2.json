@@ -1,0 +1,46 @@
+{
+  "pairs": 12,
+  "intent_wins": {
+    "enhanced": 8,
+    "raw": 2,
+    "tie": 2
+  },
+  "quality_wins": {
+    "enhanced": 5,
+    "raw": 2,
+    "tie": 5
+  },
+  "details_present": {
+    "raw": 40,
+    "enhanced": 45
+  },
+  "details_possible_per_arm": 48,
+  "limits": "Authored cases and blinded visual ratings; no population claim beyond these paired renders. State who or what performed the ratings.",
+  "image_sha256": {
+    "images/sign-01-A.png": "e450504aeb712daad9191cc560fc2ca636cb2707d6fe52ed7c7e346510944b5c",
+    "images/sign-01-B.png": "9a98cdf08997a51e5d509dcab92ecf9ffc4acb468c8d06d873297a21efb3d61b",
+    "images/count-02-A.png": "d50a4d2a6bc85e40551d0466d27ff8ae284a3ce58e0dfa049069e41bf5d12b00",
+    "images/count-02-B.png": "52a2c48abd36c82e3cdb70450e34c8cc4da13e00d29d7b14d4c5de677613067f",
+    "images/action-03-A.png": "a82c3fc657a0ee4628d5eef8870f690a9e549e81eaa98632b66674a193c82629",
+    "images/action-03-B.png": "ab4f5580fb8d402de4b1d8a8e6c3cab31af2082eb09a9fcd0feed97572709cbd",
+    "images/spatial-04-A.png": "16cdcf6a670e325ed31b680df95590a0d0a961d27eec49105eb7424f08c98f6d",
+    "images/spatial-04-B.png": "20c84bc6c473ff70084e6f9b171599f451b43d3f473e76f02ccb72ae017b3178",
+    "images/material-05-A.png": "663e4a736fda24cb031b796a54197131fb98b516737159b190f116e8e0969357",
+    "images/material-05-B.png": "530108dd5e543f411fb9cbffe0b0d8290b731b2cf06d2c4ca575de4b4468e1fe",
+    "images/negative-06-A.png": "90cfd45bd848be24dfbe4287f57921733b7924005ba5d9db6c0fbb7b16af7e58",
+    "images/negative-06-B.png": "6d36bbc7ba341c897e35c01996c85c8c4669cc05fc3b28105c28004d2dec33ea",
+    "images/motion-07-A.png": "e48aae471b538124b432bef6e5139b11d1dab740e1cec9ea51232b0dc2371bea",
+    "images/motion-07-B.png": "5d965d0e8e64c9577f55021f6c35b8f8f08a78acf38b2ab5990970afd4e82aaa",
+    "images/weather-08-A.png": "c19ddfce7c2ebd7afb27fa0b6959b3b22025d50fff9b5d2ba124d2a92a75754b",
+    "images/weather-08-B.png": "52dedcc6b19c85384000331d24787c53b63c1f3fd34a9a3a81ddc2b122a77b12",
+    "images/typography-09-A.png": "eb7be8df66e00ee1d85845327527441940af7161fdd20a795124353faac7fdfd",
+    "images/typography-09-B.png": "a33e706bf3570cf96b8baaaab83a9e8288b63403d2bd87985f734e99a3703b64",
+    "images/relation-10-A.png": "96191c75a9c21d8e59cbedc8e19d9f3cecb61b806381e36027870a446fc6f3ba",
+    "images/relation-10-B.png": "9bfd388c3d19220ed791cd22c76ccd33082099e23d075aac57af8f1146a7a8ba",
+    "images/architecture-11-A.png": "bb750dabbeeade28b9e0a44bb4bacd96c71a69b3aa08b62708483394a2579333",
+    "images/architecture-11-B.png": "2057fffc9e9b96c91d19de644a9b25fcc54bda9363f90cf3a20d87759cf60f36",
+    "images/character-12-A.png": "a380fa81d392cb6323f5fc8af60868c2b9f7b35c342eeec5b58e8bedf1ed6c37",
+    "images/character-12-B.png": "7b638e9e04af9242657f43ba00f24b5b209b073503ccabdbbfabe8e3d97fd015"
+  },
+  "image_verification_sha256": "3c5d1d6e0c7d37b6f67d73f50127c172d8eb20e4e7155a0bfdb5c8b92af51ed3"
+}

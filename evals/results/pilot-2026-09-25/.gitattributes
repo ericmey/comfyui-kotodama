@@ -1,0 +1,2 @@
+# Preserve frozen CRLF rating sheets byte-for-byte; their SHA-256s are receipts.
+*-ratings.csv binary

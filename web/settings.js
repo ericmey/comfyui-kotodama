@@ -14,6 +14,11 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
+const INPUT_STYLE = "width:100%;box-sizing:border-box;padding:6px 8px;border-radius:6px;" +
+  "background:var(--comfy-input-bg);color:var(--input-text);border:1px solid var(--border-color)";
+const BUTTON_STYLE = "padding:6px 12px;border-radius:6px;cursor:pointer;" +
+  "background:var(--comfy-input-bg);color:var(--input-text);border:1px solid var(--border-color)";
+
 function field(label, input, note) {
   const wrap = el("label", { style: "display:block;margin:0.5em 0" },
     el("div", { textContent: label, style: "font-weight:600" }), input);
@@ -36,13 +41,13 @@ function settingsPanel() {
   const cell = el("td", { colSpan: 2 });
 
   const status = el("div", { textContent: "Loading…" });
-  const url = el("input", { type: "url", placeholder: "http://127.0.0.1:4000", style: "width:100%" });
-  const key = el("input", { type: "password", autocomplete: "new-password", placeholder: "", style: "width:100%" });
-  const clearKey = el("button", { type: "button", textContent: "Clear key" });
-  const models = el("input", { type: "text", placeholder: "model-id, other-model", style: "width:100%" });
-  const timeout = el("input", { type: "number", min: 1, max: 3600, step: 1, style: "width:8em" });
-  const save = el("button", { type: "button", textContent: "Save" });
-  const test = el("button", { type: "button", textContent: "Test connection" });
+  const url = el("input", { type: "url", placeholder: "http://127.0.0.1:4000", style: INPUT_STYLE });
+  const key = el("input", { type: "password", autocomplete: "new-password", placeholder: "", style: INPUT_STYLE });
+  const clearKey = el("button", { type: "button", textContent: "Clear key", style: BUTTON_STYLE });
+  const models = el("input", { type: "text", placeholder: "model-id, other-model", style: INPUT_STYLE });
+  const timeout = el("input", { type: "number", min: 1, max: 3600, step: 1, style: INPUT_STYLE + ";width:8em" });
+  const save = el("button", { type: "button", textContent: "Save", style: BUTTON_STYLE });
+  const test = el("button", { type: "button", textContent: "Test connection", style: BUTTON_STYLE });
   const message = el("div", { style: "margin-top:0.5em" });
   let saved = { url: "" };
 
@@ -138,7 +143,6 @@ function settingsPanel() {
   });
 
   cell.append(
-    el("div", { textContent: "Kotodama connection", style: "font-weight:700;font-size:1.05em" }),
     status,
     field("Endpoint URL", url, "Root URL of an OpenAI-compatible server, without /v1."),
     field("API key", key, "Write-only: it is saved on the server and never shown again."),

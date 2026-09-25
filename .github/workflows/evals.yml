@@ -13,6 +13,9 @@ on:
       - 'tests/test_eval_protocol.py'
       - '.github/workflows/evals.yml'
 
+permissions:
+  contents: read
+
 jobs:
   protocol:
     runs-on: ubuntu-latest

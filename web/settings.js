@@ -31,6 +31,7 @@ const ERRORS = {
   confirm_url_change: "Changing the endpoint needs confirmation.",
   key_outside_panel: "Your API key is set outside this panel (an environment variable or the node folder's .env). " +
     "The panel cannot remove it or change the endpoint it is sent to; change both where the key is set.",
+  url_shadowed: "The endpoint is set by an environment variable, which overrides this panel. Change it where it is set.",
   invalid_url: "The endpoint must be an http(s) URL without a username, password, query or fragment.",
   invalid_api_key: "The API key cannot be blank. Use Clear key to remove it.",
   invalid_timeout: "Timeout must be a number of seconds from 1 to 3600.",

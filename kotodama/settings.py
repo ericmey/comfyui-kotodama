@@ -212,6 +212,10 @@ def plan_settings_update(body: dict) -> tuple[dict[str, str | None], str | None]
         if url and not config.valid_endpoint(url):
             return {}, "invalid_url"
         if url != config.base_url():
+            # A URL in the process environment outranks the panel: the save would
+            # change nothing but still drop the key, and report success.
+            if config.shadowed_by_environment("KOTODAMA_BASE_URL", "LITELLM_BASE_URL"):
+                return {}, "url_shadowed"
             if body.get("confirm_url_change") is not True:
                 return {}, "confirm_url_change"
             # Never let a new endpoint receive the key that was saved for the old one.
@@ -253,7 +257,14 @@ async def post_settings(request):
         return _refuse(web, 403, "cross_origin")
     if request.content_type != "application/json":
         return _refuse(web, 415, "json_required")
-    raw = await request.content.read(_MAX_SETTINGS_BODY + 1)
+    # read(n) returns whatever is buffered, which can be part of the body;
+    # keep reading until EOF or one byte past the limit.
+    raw = b""
+    while len(raw) <= _MAX_SETTINGS_BODY:
+        chunk = await request.content.read(_MAX_SETTINGS_BODY + 1 - len(raw))
+        if not chunk:
+            break
+        raw += chunk
     if len(raw) > _MAX_SETTINGS_BODY:
         return _refuse(web, 413, "too_large")
     try:
@@ -264,7 +275,8 @@ async def post_settings(request):
         return _refuse(web, 400, "invalid_json")
     updates, error = plan_settings_update(body)
     if error:
-        return _refuse(web, 409 if error in ("confirm_url_change", "key_outside_panel") else 400, error)
+        conflict = ("confirm_url_change", "key_outside_panel", "url_shadowed")
+        return _refuse(web, 409 if error in conflict else 400, error)
     try:
         config.write_user_settings(updates)
     except config.SettingsWriteError as exc:

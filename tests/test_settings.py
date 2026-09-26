@@ -206,7 +206,9 @@ class SaveRequest:
         self._raw = raw
 
     async def read(self, amount):
-        return self._raw[:amount]
+        # Consume, like aiohttp's StreamReader: a second read gets the rest.
+        chunk, self._raw = self._raw[:amount], self._raw[amount:]
+        return chunk
 
 
 @pytest.fixture
@@ -427,3 +429,28 @@ def test_connection_test_bounds_the_read(configured) -> None:
     body = b" " * (settings._TEST_MAX_BYTES + 1)
     with patch.object(client, "urlopen", return_value=SizedResponse(body)):
         assert settings.probe_saved_endpoint() == {"ok": False, "status": 200, "error": "too_large"}
+
+
+class TrickleRequest(SaveRequest):
+    """read(n) returns at most 10 bytes, like a body still arriving over TCP."""
+
+    async def read(self, amount):
+        chunk, self._raw = self._raw[:min(amount, 10)], self._raw[min(amount, 10):]
+        return chunk
+
+
+def test_a_body_arriving_in_pieces_is_read_whole(user_dir) -> None:
+    # Found by Aoi on the immich port: content.read(n) returns only what is buffered.
+    response = run(settings.post_settings(TrickleRequest({"api_key": SENTINEL})))
+    assert response.status == 200, response.body
+    assert config._read_env_file(user_dir)["KOTODAMA_API_KEY"] == SENTINEL
+
+
+@pytest.mark.parametrize("name", ["KOTODAMA_BASE_URL", "LITELLM_BASE_URL"])
+def test_url_edit_refused_when_the_environment_sets_the_url(user_dir, name) -> None:
+    # Found by Aoi on the immich port: 200, nothing changed, and the key was dropped.
+    config.write_user_settings({"KOTODAMA_API_KEY": "PANEL-KEY"})
+    with patch.dict(os.environ, {name: "https://env.example"}):
+        status, got = save({"base_url": "https://panel.example", "confirm_url_change": True})
+    assert (status, got["error"]) == (409, "url_shadowed")
+    assert config._read_env_file(user_dir) == {"KOTODAMA_API_KEY": "PANEL-KEY"}

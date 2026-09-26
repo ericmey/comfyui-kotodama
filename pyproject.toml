@@ -11,11 +11,11 @@ authors = [{name = "Eric Mey"}]
 [project.urls]
 # comfy-cli 1.21.0 publishes Homepage, Documentation, Repository and Issues; the
 # Registry spec page names the issues link "Bug Tracker", so both are set.
-Homepage = "https://github.com/ericmey/comfyui-kotodama"
-Repository = "https://github.com/ericmey/comfyui-kotodama"
-Documentation = "https://github.com/ericmey/comfyui-kotodama#readme"
-Issues = "https://github.com/ericmey/comfyui-kotodama/issues"
-"Bug Tracker" = "https://github.com/ericmey/comfyui-kotodama/issues"
+Homepage = "https://github.com/sourceblender/comfyui-kotodama"
+Repository = "https://github.com/sourceblender/comfyui-kotodama"
+Documentation = "https://github.com/sourceblender/comfyui-kotodama#readme"
+Issues = "https://github.com/sourceblender/comfyui-kotodama/issues"
+"Bug Tracker" = "https://github.com/sourceblender/comfyui-kotodama/issues"
 
 [dependency-groups]
 # aiohttp is provided by ComfyUI at runtime; the settings tests need it here.
@@ -34,7 +34,7 @@ target-version = "py310"
 select = ["E", "F", "W", "I", "UP", "B"]
 
 [tool.comfy]
-PublisherId = "ericmey"
+PublisherId = "sourceblender"
 DisplayName = "Kotodama Prompt Enhancer"
 Icon = "https://raw.githubusercontent.com/ericmey/comfyui-kotodama/main/docs/images/icon.png"
 Banner = "https://raw.githubusercontent.com/ericmey/comfyui-kotodama/main/docs/images/banner.png"

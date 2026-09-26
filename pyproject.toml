@@ -36,5 +36,5 @@ select = ["E", "F", "W", "I", "UP", "B"]
 [tool.comfy]
 PublisherId = "sourceblender"
 DisplayName = "Kotodama Prompt Enhancer"
-Icon = "https://raw.githubusercontent.com/ericmey/comfyui-kotodama/main/docs/images/icon.png"
-Banner = "https://raw.githubusercontent.com/ericmey/comfyui-kotodama/main/docs/images/banner.png"
+Icon = "https://raw.githubusercontent.com/sourceblender/comfyui-kotodama/main/docs/images/icon.png"
+Banner = "https://raw.githubusercontent.com/sourceblender/comfyui-kotodama/main/docs/images/banner.png"
